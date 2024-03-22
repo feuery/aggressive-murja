@@ -13,7 +13,11 @@
 					    :decorators (@json @transaction)) ()
   (let ((titles (get-titles-by-year)))
     (stringify titles)))
-    
+
+(defroute manager-title-routes ("/api/posts/all-titles" :method :get
+							:decorators (@json @transaction)) ()
+  (let ((titles (get-titles-by-year :allow-hidden? t)))
+    (stringify titles)))    
 
 (defroute get-page-route ("/api/posts/page/:page/page-size/:page-size" :method :get
 								       :decorators (@json @transaction))
