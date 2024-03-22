@@ -18,31 +18,26 @@ GROUP BY
   u.id;
 
 -- name: query-users*
--- :? :1 
-SELECT u.Username, u.Nickname, u.ID as UserID, u.Password, u.Img_location, ug.ID as GroupID, ug.Name as GroupName, gm.PrimaryGroup, json_agg(DISTINCT perm.action) "permissions"
+-- returns: :array-hash
+SELECT u.Username, u.Nickname, u.Img_location, ug.Name as "primary-group-name", gm.PrimaryGroup, u.ID as userid, json_agg(DISTINCT perm.action) as "permissions"
 FROM blog.Users u
 JOIN blog.GroupMapping gm ON u.ID = gm.UserID
 JOIN blog.UserGroup ug ON ug.ID = gm.GroupID
 JOIN blog.grouppermissions gp ON gp.groupid = gm.groupid
 JOIN blog.permission perm ON perm.id = gp.permissionid
-WHERE u.Username = $1 AND u.Password = $2;
+WHERE u.Username = $1 AND u.Password = $2
+GROUP BY u.Username, u.Nickname, u.Img_location, ug.Name, gm.PrimaryGroup, u.ID;
 
--- name: get-user-view-data*
-SELECT u.Username, u.Nickname, u.Img_location, ug.Name as "primary-group-name", gm.PrimaryGroup, u.ID as userid, perm.action
+-- name: query-user-for-session
+-- returns: :array-hash 
+SELECT u.Username, u.Nickname, u.Img_location, ug.Name as "primary-group-name", gm.PrimaryGroup, u.ID as userid, json_agg(DISTINCT perm.action) as "permissions"
 FROM blog.Users u
 JOIN blog.GroupMapping gm ON u.ID = gm.UserID
 JOIN blog.UserGroup ug ON ug.ID = gm.GroupID
 JOIN blog.grouppermissions gp ON gp.groupid = gm.groupid
 JOIN blog.permission perm ON perm.id = gp.permissionid
-WHERE u.ID = :user-id;
-
--- name: user-groups*
-SELECT ug.ID, ug.Name, ug.Description
-FROM blog.Users u
-LEFT JOIN blog.GroupMapping um ON um.UserID = u.ID
-LEFT JOIN blog.UserGroup ug ON um.GroupID = ug.ID
-WHERE u.Username = :username;
-
+WHERE u.id = $1
+GROUP BY u.Username, u.Nickname, u.Img_location, ug.Name, gm.PrimaryGroup, u.ID;
 
 -- name: can?*
 -- :? :1

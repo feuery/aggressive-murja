@@ -1,5 +1,6 @@
 (defpackage :murja.users.user-db
   (:use :cl :postmodern)
+  (:export :get-session-user-by-id :select-user-by-login)
   (:import-from :halisql :defqueries))
 
 (in-package :murja.users.user-db)
@@ -16,7 +17,12 @@
 (defun get-user-by-id (id)
   (jsonize-key (aref (get-user-by-id* id) 0) "permissions"))
 
+(defun get-session-user-by-id (id)
+  (jsonize-key (aref (query-user-for-session id) 0) "permissions"))
+
 (defun select-user-by-login (username password-sha)
-  (jsonize-key (aref (query-users* username password-sha) 0) "permissions"))
+  (let ((usr (first (coerce  (query-users* username password-sha) 'list))))
+    (when usr
+      (jsonize-key usr "permissions"))))
 
   ;;(postmodern:connect-toplevel "blogdb" "blogadmin" "blog" "localhost")
