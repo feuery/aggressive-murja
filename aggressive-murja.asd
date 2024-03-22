@@ -15,14 +15,30 @@
 	       "easy-routes"
 	       "drakma"
                "str"
+	       "cl-fad"
 	       "log4cl"
 	       "cl-advice")
   :description "A rewrite of the <a href=\"https://github.com/feuery/murja-blog/\">murja blogging engine</a> in lisp"
   :components ((:module "src"
 		:components
-		((:module "posts"
+		((:module "local-lib"
+		  :components ((:file "lisp-fixup")
+			       (:file "halisql")))
+		 (:module "users"
+		  :components ((:file "user-db")))
+		 (:module "middleware"
+		  :components ((:file "json")
+			       (:file "db")
+			       (:file "auth")))
+		 (:module "posts"
 		  :components
 		  ((:file "post-db")))
+
+		 (:module "routes"
+		  :components
+		  ((:file "login-routes")
+		   (:file "post-routes")
+		   (:file "root-routes")))
 		 (:file "main")))))
 
 
