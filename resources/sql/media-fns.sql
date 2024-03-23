@@ -1,6 +1,5 @@
 -- name: insert-media
--- returns: :array-hash
-insert into blog.media (name, data) values (:name, :data) returning id;
+insert into blog.media (name, data) values ($1, $2) returning id;
 
 -- name: get-media :? :1
 -- returns: :array-hash

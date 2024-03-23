@@ -3,7 +3,7 @@
   (:import-from :com.inuoe.jzon :parse)
   (:import-from :halisql :defqueries)
   (:import-from :lisp-fixup :fix-timestamp)
-  (:export))
+  (:export :list-pictures :insert-media))
 
 (in-package :murja.media.media-db)
 
