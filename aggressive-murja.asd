@@ -34,10 +34,15 @@
 		  :components
 		  ((:file "post-db")))
 
+		 (:module "media"
+		  :components
+		  ((:file "media-db")))
+
 		 (:module "routes"
 		  :components
 		  ((:file "login-routes")
 		   (:file "post-routes")
+		   (:file "media-routes")
 		   (:file "root-routes")))
 		 (:file "main")))))
 

@@ -54,7 +54,7 @@
 							   :decorators (@json)) ()
   "{\"time-format\":\"dd.MM.yyyy HH:mm\",\"blog-title\":\"Murja.dev @ $HOSTNAME\",\"recent-post-count\":6,\"xss-filter-posts?\":false}")
 
-(defroute resources ("/resources/:file" :method :get) ()
+(defun get-resource (file)
   (let ((path (gethash file *allowed-resources*)))
     (if path
 	(let ((source (lisp-fixup:slurp-utf-8 path)))
@@ -63,13 +63,14 @@
 	(progn
 	  (setf (hunchentoot:return-code*) 404)
 	  ""))))
+(defroute resources ("/resources/:file" :method :get) ()
+  (get-resource file))
 
-(defroute root ("/" :method :get) ()
-  ;; (let ((css-file (asdf:system-relative-pathname halisql:*system-name*
-  ;; 						 "resources/css/murja.css"))
-  ;; 	(js-file (asdf:system-relative-pathname halisql:*system-name*
-  ;; 						"resources/js/murja.js")))
-"<!DOCTYPE html>
+;; (defroute resources ("/blog/resources/:file" :method :get) ()
+;;   (get-resource file))
+
+(defvar *root* 
+  "<!DOCTYPE html>
 <html xmlns:of=\"http://ogp.me/ns#\"
       xmlns:fb=\"http://www.facebook.com/2008/fbml\">
   <head>
@@ -79,9 +80,15 @@
     <script src=\"/resources/murja.js\"></script>
   </head>
   <body>
-    <script src=\"resources/murja-helper.js\"></script>
+    <script src=\"/resources/murja-helper.js\"></script>
     <div id=\"#app\" />
   </body>
 </html>")
+
+(defroute root ("/" :method :get) ()
+  *root*)
+
+(defroute mediamgr ("/blog/mediamanager" :method :get) ()
+  *root*)
 
 
