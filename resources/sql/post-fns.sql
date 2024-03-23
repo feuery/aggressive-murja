@@ -145,3 +145,18 @@ FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
 WHERE p.tags @> :tags AND (NOT p.tags ?? 'hidden' OR (p.tags ?? 'hidden' AND :show-hidden))  	     	
       	     	      and ((NOT p.tags ?? 'unlisted') OR :show-hidden);
+
+-- name: insert-post
+-- (:title, :content, :creator-id, :tags) ==
+-- ($1, $2, $3, $4)
+insert into blog.post (title, content, creator_id, tags)
+values ($1, $2, $3, $4) returning id;
+
+-- name: update-post
+-- (:title, :content, :tags, :creator-id) ==
+-- ($1, $2, $3, $4)
+update blog.post
+set title = $1,
+    content = $2,
+    tags = $3
+where id = $4;

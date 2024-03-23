@@ -3,7 +3,7 @@
   (:import-from :com.inuoe.jzon :parse)
   (:import-from :halisql :defqueries)
   (:import-from :lisp-fixup :fix-timestamp)
-  (:export :get-page :get-titles-by-year))
+  (:export :get-page :get-titles-by-year :insert-post :update-post))
 
 (in-package :murja.posts.post-db)
 

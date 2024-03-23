@@ -88,6 +88,15 @@
 (defroute root ("/" :method :get) ()
   *root*)
 
+(defroute root-blg ("/blog/" :method :get) ()
+  *root*)
+
+(defroute root-blg ("/blog/new_post" :method :get) ()
+  *root*)
+
+(defroute root-blg ("/blog/new_post/" :method :get) ()
+  *root*)
+
 (defroute mediamgr ("/blog/mediamanager" :method :get) ()
   *root*)
 
