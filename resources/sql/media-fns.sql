@@ -1,9 +1,9 @@
 -- name: insert-media
 insert into blog.media (name, data) values ($1, $2) returning id;
 
--- name: get-media :? :1
+-- name: get-media
 -- returns: :array-hash
-select name, data from blog.media where id = $1§::uuid ;
+select name, data from blog.media where id = $1::uuid ;
 
 -- name: list-pictures*
 -- returns: :array-hash
@@ -15,4 +15,4 @@ delete from blog.media where id = $1§;
 
 -- name: select-referencing-posts* :?
 -- returns: :array-hash
-select * from blog.media_post_pairing where media_id = $1§;
+select * from blog.media_post_pairing where media_id = $1;
