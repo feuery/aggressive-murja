@@ -40,12 +40,27 @@ WHERE p.ID > :post-id AND NOT p.tags ?? 'hidden'
 ORDER BY p.ID ASC
 LIMIT 1;
 
--- name: get-by-id* 
-SELECT p.ID, p.Title, p.created_at, p.Content, p.tags, u.Username, u.Nickname, u.Img_location, COUNT(c.ID) AS "amount-of-comments"
+-- name: get-by-id*
+-- returns: :array-hash
+SELECT p.ID,
+       p.Title,
+       p.created_at,
+       p.Content,
+       p.tags,
+       '[]'::json as "Comments",
+       json_build_object('username',
+			 u.Username,
+			 'nickname',
+			 u.Nickname,
+			 'img_location',
+			 u.Img_location) as "creator",
+       null as "prev-post-id",
+       '[]'::json as "versions",
+       null as "version",
+       null as "next-post-id"
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
-LEFT JOIN blog.Comment c ON c.parent_post_id = p.ID
-WHERE p.ID = :post-id AND (NOT p.tags ?? 'hidden' OR (p.tags ?? 'hidden' AND :show-hidden))
+WHERE p.ID = $1 AND (NOT p.tags ? 'hidden' OR (p.tags ? 'hidden' AND $2))
 GROUP BY p.ID, u.ID;
 
 -- name: get-versioned-by-id* 
@@ -98,17 +113,6 @@ SELECT tags FROM blog.Post WHERE id = :post-id;
 update blog.post
 set tags = :new-tags
 where id = :post-id;
-
--- name: insert-post :<! :1
-insert into blog.post (title, content, creator_id, tags)
-values (:title, :content, :creator-id, :tags) returning id;
-
--- name: update-post @execute :1
-update blog.post
-set title = :title,
-    content = :content,
-    tags = :tags
-where id = :id;
 
 -- name: delete-post @execute
 delete blog.post

@@ -4,7 +4,7 @@
   (:import-from :com.inuoe.jzon :stringify :parse)
   (:import-from :murja.middleware.db :@transaction)
   (:import-from :murja.middleware.auth :@authenticated :*user* :@can?)
-  (:import-from :murja.posts.post-db :get-page :get-titles-by-year)
+  (:import-from :murja.posts.post-db :get-post :get-page :get-titles-by-year)
    
   (:import-from :murja.middleware.json :@json)
   (:import-from :easy-routes :defroute))
@@ -13,7 +13,7 @@
 
 (defroute title-routes ("/api/posts/titles" :method :get
 					    :decorators (@json @transaction)) ()
-  (let ((titles (get-titles-by-year)))
+  (let ((titles (or (get-titles-by-year) #())))
     (stringify titles)))
 
 (defroute manager-title-routes ("/api/posts/all-titles" :method :get
@@ -36,6 +36,15 @@
 
     (com.inuoe.jzon:stringify result)))
 
+(defroute hidden-post ("/api/posts/post/:id/allow-hidden/:hidden" :method :get
+								  :decorators (@json
+									       @transaction
+									       @authenticated
+									       (@can? "edit-post"))) ()
+  
+  (let* ((show-hidden? (string= hidden "true"))
+	 (post (get-post id :allow-hidden? show-hidden?)))
+    (stringify post)))
 
 ;; routes that write to the db
 (defroute post-creation-route ("/api/posts/post" :method :post
@@ -43,16 +52,36 @@
 							      @transaction
 							      @authenticated
 							      (@can? "create-post"))) ()
-    (let* ((request-body (parse (hunchentoot:raw-post-data :force-text t)))
-	   (content (gethash "content" request-body))
-	   (title (gethash "title" request-body))
-	   (tags (stringify
-		  (remove-if (partial #'string= "")
-			     (coerce 
-			      (gethash "tags" request-body) 'list))))
+  (log:info "inserting post")
+  (let* ((request-body (parse (hunchentoot:raw-post-data :force-text t)))
+	 (content (gethash "content" request-body))
+	 (title (gethash "title" request-body))
+	 (tags (stringify
+		(or (remove-if (partial #'string= "")
+			       (coerce 
+				(gethash "tags" request-body) 'list))
+		    #())))
 
-	   (creator-id (gethash "id" *user*)))
-      (assert creator-id)
-      (murja.posts.post-db:insert-post title content creator-id tags)
-      ""))
-    
+	 (creator-id (gethash "id" *user*)))
+    (assert creator-id)
+    (murja.posts.post-db:insert-post title content creator-id tags)
+    ""))
+
+(defroute post-update-route ("/api/posts/post" :method :put 
+					       :decorators (@json
+							    @transaction
+							    @authenticated
+							    (@can? "edit-post"))) ()
+  (let* ((request-body (parse (hunchentoot:raw-post-data :force-text t)))
+	 (content (gethash "content" request-body))
+	 (title (gethash "title" request-body))
+	 (tags (stringify
+		(or (remove-if (partial #'string= "")
+			       (coerce 
+				(gethash "tags" request-body) 'list))
+		    #())))
+	 (post-id (gethash "id" request-body)))
+    (log:info "updating post ~d" post-id)
+
+    (murja.posts.post-db:update-post title content tags post-id)
+    ""))

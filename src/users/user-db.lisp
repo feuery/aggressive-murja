@@ -15,7 +15,9 @@
   hash)
 
 (defun get-user-by-id (id)
-  (jsonize-key (aref (get-user-by-id* id) 0) "permissions"))
+  (let ((result (coerce (get-user-by-id* id) 'list)))
+    (when result
+      (jsonize-key (first result) "permissions"))))
 
 (defun get-session-user-by-id (id)
   (jsonize-key (aref (query-user-for-session id) 0) "permissions"))
