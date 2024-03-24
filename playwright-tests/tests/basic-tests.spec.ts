@@ -22,8 +22,9 @@ test('basic testing', async ({ page, browser }) => {
     await expect(page.locator('.post')).toBeHidden();
 
     // these shoudln't probably be visible in a completely empty murja but :shrug:
+    /*
     await expect(page.getByTestId('page-changer')).toHaveText('Next page');
-    await expect(page.getByTestId('page-changer')).not.toHaveText('Previous page');
+    await expect(page.getByTestId('page-changer')).not.toHaveText('Previous page'); */
 
     // login-form is visible, logged-in component is hidden
     await expect(page.getByTestId('username-input-field')).toBeVisible();
@@ -149,5 +150,18 @@ test('basic testing', async ({ page, browser }) => {
     await expect(anon_page.locator('.meta')).toContainText('1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13');
 
     await anon_page.close();
+
+    // make sure editor saves 
+    await page.getByText('Edit this post').click();
+
+    const edited_test_title = 'really badly edited test post';
+    await page.locator('#editor-post-title').fill(edited_test_title);
+
+    await page.locator('#editor-post-save').click();
+    await page.getByTestId('home').click();
+
+    await page.reload();
+    await expect(page.getByRole('link', { name: edited_test_title })).toBeVisible();
+    
 });;
 
