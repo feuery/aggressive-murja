@@ -17,7 +17,7 @@ const password = 'p4ssw0rd';
 // }
 
 test('basic testing', async ({ page, browser }) => {
-    await page.goto('http://localhost:3000');
+    await page.goto('http://localhost:3010');
 
     await expect(page.locator('.post')).toBeHidden();
 
@@ -42,6 +42,8 @@ test('basic testing', async ({ page, browser }) => {
     await expect(page.locator('.post')).toBeHidden()
 
     await page.getByTestId('new-post-btn').click();
+
+    await expect(page.getByTestId('article-id')).toContainText('Article: No id');
     
     await page.locator('#editor-post-title').fill('New automatic post');
 
@@ -77,15 +79,17 @@ test('basic testing', async ({ page, browser }) => {
     await page.getByTestId('home').click();
 
     // are there any posts?
-    await page.goto('http://localhost:3000');
+    await page.goto('http://localhost:3010');
     
     await expect(page.locator('.post')).toBeVisible();
     await expect(page.locator('.post')).toContainText(txt);
     await expect(page.locator('.tag')).toHaveText(tag);
 
     // edit the post
-    for(let x = 0; x < 10; x++) {
+    for(let x = 0; x < 10; x++) {	
 	await page.getByTestId('edit-post-btn').click();
+
+	await expect(page.getByTestId('article-id')).not.toContainText('Article: No id');
 
 	await expect(page.locator('#editor-post-content')).toBeVisible();
 
@@ -93,7 +97,8 @@ test('basic testing', async ({ page, browser }) => {
 
 	    document.querySelector('#editor-post-content').value = "edited article";
 	    console.log('success');
-	});	    
+	});
+
 	await page.locator('#editor-post-save').click();
 	await page.getByTestId('home').click();
 
@@ -116,10 +121,9 @@ test('basic testing', async ({ page, browser }) => {
     await page.getByTestId('home').click();
 
     await expect(page.locator('.post')).toBeHidden();
-
     // make it visible
 
-    await page.goto('http://localhost:3000/blog/postadmin');
+    await page.goto('http://localhost:3010/blog/postadmin');
     await expect(page.getByTestId('manager-edit-post-btn')).toBeVisible();
     
     await page.getByTestId('manager-edit-post-btn').click();
@@ -145,12 +149,11 @@ test('basic testing', async ({ page, browser }) => {
     const new_ctx = await browser.newContext();
     // Create a new page inside context.
     const anon_page = await new_ctx.newPage();
-    await anon_page.goto('http://localhost:3000');
+    await anon_page.goto('http://localhost:3010');
 
-    await expect(anon_page.locator('.meta')).toContainText('1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13');
+    await expect(anon_page.locator('.meta')).toContainText('1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13'); 
 
     await anon_page.close();
-
     // make sure editor saves 
     await page.getByText('Edit this post').click();
 

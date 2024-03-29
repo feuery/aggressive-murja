@@ -63,13 +63,22 @@ JOIN blog.Users u ON u.ID = p.creator_id
 WHERE p.ID = $1 AND (NOT p.tags ? 'hidden' OR (p.tags ? 'hidden' AND $2))
 GROUP BY p.ID, u.ID;
 
--- name: get-versioned-by-id* 
-SELECT p.ID, p.Title, p.created_at, p.Content, p.tags, u.Username, u.Nickname, u.Img_location, p.version, COUNT(c.ID) AS "amount-of-comments"
+-- name: get-versioned-by-id*
+-- returns: :array-hash
+-- $1 == post-id
+-- $2 == version-id
+SELECT p.ID, p.Title, p.created_at, p.Content, p.tags, p.version, 0 AS "amount-of-comments", json_build_object('username',
+			 u.Username,
+			 'nickname',
+			 u.Nickname,
+			 'img_location',
+			 u.Img_location) as "creator",
+       null as "prev-post-id",
+       '[]'::json as "versions",
+       null as "next-post-id"		 
 FROM blog.Post_History p
 JOIN blog.Users u ON u.ID = p.creator_id
-LEFT JOIN blog.Comment c ON c.parent_post_id = p.ID
-WHERE p.ID = :post-id AND p.version = :version-id AND not tags ?? 'hidden'
-GROUP BY p.ID, u.ID, p.title, p.created_at, p.Content, p.tags, u.Username, u.Nickname, u.Img_location, p.version;
+WHERE p.ID = $1 AND p.version = $2 AND not tags ? 'hidden';
 
 
 -- name: get-all*
@@ -90,10 +99,11 @@ ORDER BY p.created_at DESC
 -- $3 == show-hidden?
 -- name: get-page*
 -- returns: :array-hash
-SELECT p.ID, p.Title, p.Content, p.created_at, p.tags, COUNT(c.ID) AS "amount-of-comments", json_build_object('username', u.Username, 'nickname', u.Nickname, 'img_location', u.Img_location) as "creator"
+SELECT p.ID, p.Title, p.Content, p.created_at, p.tags, COUNT(c.ID) AS "amount-of-comments", json_build_object('username', u.Username, 'nickname', u.Nickname, 'img_location', u.Img_location) as "creator", json_agg(DISTINCT version) as "versions"
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
 LEFT JOIN blog.Comment c ON c.parent_post_id = p.ID
+LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND ((not ph.tags ? 'unlisted') OR $3) AND ((not ph.tags ? 'hidden') OR $3))
 WHERE ((NOT p.tags ? 'unlisted') OR $3)
   AND ((NOT p.tags ? 'hidden') OR $3)
 GROUP BY p.ID, u.ID

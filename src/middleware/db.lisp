@@ -19,13 +19,18 @@
 
 (defun @transaction (next)
   (destructuring-bind (&key db username password host port) (db-config)
-    (with-connection (list db username password host :port port)
+    (handler-bind ((cl-postgres:database-socket-error
+		     (lambda (c)
+		       (format t "Socket error from db: ~a~%" c)
+		       (setf (hunchentoot:return-code*) 500)
+		       (return-from @transaction "Internal Server Error"))))
+      (with-connection (list db username password host :port port)
 
-      (with-schema (:blog :if-not-exist nil)
-	(handler-bind ((cl-postgres:database-error
-			 (lambda (c)
-			   (format t "Error from db: ~a~%" c)
-			   (setf (hunchentoot:return-code*) 500)
-			   "Internal Server Error")))
-	  (with-transaction ()
-	    (funcall next)))))))
+	(with-schema (:blog :if-not-exist nil)
+	  (handler-bind ((cl-postgres:database-error
+			   (lambda (c)
+			     (format t "Error from db: ~a~%" c)
+			     (setf (hunchentoot:return-code*) 500)
+			     (return-from @transaction "Internal Server Error"))))
+	    (with-transaction ()
+	      (funcall next))))))))

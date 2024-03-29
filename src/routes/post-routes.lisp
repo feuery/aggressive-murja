@@ -4,7 +4,7 @@
   (:import-from :com.inuoe.jzon :stringify :parse)
   (:import-from :murja.middleware.db :@transaction)
   (:import-from :murja.middleware.auth :@authenticated :*user* :@can?)
-  (:import-from :murja.posts.post-db :get-post :get-page :get-titles-by-year)
+  (:import-from :murja.posts.post-db :get-post-version :get-post :get-page :get-titles-by-year)
    
   (:import-from :murja.middleware.json :@json)
   (:import-from :easy-routes :defroute))
@@ -44,7 +44,18 @@
   
   (let* ((show-hidden? (string= hidden "true"))
 	 (post (get-post id :allow-hidden? show-hidden?)))
+    (log:info "returning post (hidden allowed? ~a) { ~{~a~%~} }~%" hidden (alexandria:hash-table-alist post))
     (stringify post)))
+
+(defroute get-post-version-route ("/api/posts/post/:id/version/:version" :method :get
+								   :decorators (@json
+										@transaction)) ()
+  (let ((post (get-post-version id version)))
+    (if post 
+	(stringify post)
+	(progn
+	  (setf (hunchentoot:return-code*) 404)
+	  ""))))
 
 ;; routes that write to the db
 (defroute post-creation-route ("/api/posts/post" :method :post
