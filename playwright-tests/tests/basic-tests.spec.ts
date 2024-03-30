@@ -16,6 +16,36 @@ const password = 'p4ssw0rd';
 //   await expect(page.getByText('Log out')).toBeVisible();
 // }
 
+async function postPost(page, title, post, tag) {
+    await page.getByTestId('new-post-btn').click();
+    await page.getByTestId('clear-editor').click();
+
+    console.log(`Posting post with title ${title}, tag ${tag}`);
+    await expect(page.getByTestId('article-id')).toContainText('Article: No id');
+    
+    await page.locator('#editor-post-title').fill(title);
+    
+    await page.evaluate((post) => {
+	document.querySelector('#editor-post-content').value = post;
+    }, post);
+
+    await expect(page.locator('#editor-post-title')).toHaveValue(title);
+    await expect(page.locator('#editor-post-content')).toContainText(post);
+
+    // edit tags
+
+    await expect(page.locator('#tag-select')).not.toContainText(tag);
+
+    await page.locator('#new-tag-btn').click();
+
+    await page.locator('#tag-select').selectOption(tag);
+
+    await expect(page.locator('#tag-select')).toContainText(tag);
+
+    await page.locator('#editor-post-save').click();
+    await page.getByTestId('home').click();
+}
+
 test('basic testing', async ({ page, browser }) => {
     await page.goto('http://localhost:3010');
 
@@ -40,49 +70,24 @@ test('basic testing', async ({ page, browser }) => {
 
     // test post editor
     await expect(page.locator('.post')).toBeHidden()
-
-    await page.getByTestId('new-post-btn').click();
-
-    await expect(page.getByTestId('article-id')).toContainText('Article: No id');
-    
-    await page.locator('#editor-post-title').fill('New automatic post');
-
-    const txt = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer enim erat, sollicitudin non nibh et, porttitor ullamcorper nunc. Phasellus eget orci molestie leo euismod blandit. Nam sagittis porta lectus in pulvinar. Suspendisse ultricies, eros ac venenatis vestibulum, est elit varius sem, quis vehicula quam nibh ut lorem. Nullam eget lobortis magna, in tristique diam. Interdum et malesuada fames ac ante ipsum primis in faucibus. Maecenas ultrices sapien dolor, ut suscipit mauris luctus et. Nullam tristique lorem in volutpat venenatis. Nunc ultrices nulla libero, et dignissim metus eleifend et. Donec congue mauris felis, pulvinar vulputate enim efficitur in. Pellentesque vehicula maximus lorem, eu tempus tortor iaculis eu. Aliquam lectus turpis, aliquam quis mattis nec, placerat nec erat. Morbi et justo et neque elementum suscipit. Nullam rutrum lectus eget lacus viverra pellentesque. Fusce faucibus lacinia urna at tincidunt. In hac habitasse platea dictumst.';
-    
-    await page.evaluate(() => {
-	const txt = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer enim erat, sollicitudin non nibh et, porttitor ullamcorper nunc. Phasellus eget orci molestie leo euismod blandit. Nam sagittis porta lectus in pulvinar. Suspendisse ultricies, eros ac venenatis vestibulum, est elit varius sem, quis vehicula quam nibh ut lorem. Nullam eget lobortis magna, in tristique diam. Interdum et malesuada fames ac ante ipsum primis in faucibus. Maecenas ultrices sapien dolor, ut suscipit mauris luctus et. Nullam tristique lorem in volutpat venenatis. Nunc ultrices nulla libero, et dignissim metus eleifend et. Donec congue mauris felis, pulvinar vulputate enim efficitur in. Pellentesque vehicula maximus lorem, eu tempus tortor iaculis eu. Aliquam lectus turpis, aliquam quis mattis nec, placerat nec erat. Morbi et justo et neque elementum suscipit. Nullam rutrum lectus eget lacus viverra pellentesque. Fusce faucibus lacinia urna at tincidunt. In hac habitasse platea dictumst.';
-	document.querySelector('#editor-post-content').value = txt;
-	console.log('success');
-    });
-
-    await expect(page.locator('#editor-post-title')).toHaveValue('New automatic post');
-    await expect(page.locator('#editor-post-content')).toContainText(txt);
-
-    // edit tags
+    const title = 'New automatic post';
     let tag = 'test-tag';
-
-    await expect(page.locator('#tag-select')).not.toContainText(tag);
-    
     let first_dialog_event = dialog => {
 	console.log(`accepting tag ${tag}`);
 	dialog.accept(tag);
     };
+
+    const post= 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer enim erat, sollicitudin non nibh et, porttitor ullamcorper nunc. Phasellus eget orci molestie leo euismod blandit. Nam sagittis porta lectus in pulvinar. Suspendisse ultricies, eros ac venenatis vestibulum, est elit varius sem, quis vehicula quam nibh ut lorem. Nullam eget lobortis magna, in tristique diam. Interdum et malesuada fames ac ante ipsum primis in faucibus. Maecenas ultrices sapien dolor, ut suscipit mauris luctus et. Nullam tristique lorem in volutpat venenatis. Nunc ultrices nulla libero, et dignissim metus eleifend et. Donec congue mauris felis, pulvinar vulputate enim efficitur in. Pellentesque vehicula maximus lorem, eu tempus tortor iaculis eu. Aliquam lectus turpis, aliquam quis mattis nec, placerat nec erat. Morbi et justo et neque elementum suscipit. Nullam rutrum lectus eget lacus viverra pellentesque. Fusce faucibus lacinia urna at tincidunt. In hac habitasse platea dictumst.';
     
     page.on('dialog', first_dialog_event);
-    await page.locator('#new-tag-btn').click();
 
-    await page.locator('#tag-select').selectOption(tag);
-
-    await expect(page.locator('#tag-select')).toContainText(tag);
-
-    await page.locator('#editor-post-save').click();
-    await page.getByTestId('home').click();
+    await postPost(page, title, post, tag);
 
     // are there any posts?
     await page.goto('http://localhost:3010');
     
     await expect(page.locator('.post')).toBeVisible();
-    await expect(page.locator('.post')).toContainText(txt);
+    await expect(page.locator('.post')).toContainText(post);
     await expect(page.locator('.tag')).toHaveText(tag);
 
     // edit the post
@@ -103,7 +108,7 @@ test('basic testing', async ({ page, browser }) => {
 	await page.getByTestId('home').click();
 
 	await expect(page.locator('.post')).toContainText("edited article");
-	await expect(page.locator('.post')).not.toContainText(txt);
+	await expect(page.locator('.post')).not.toContainText(post);
     }
 
     await expect(page.locator('.meta')).toContainText('1, 2, 3, 4, 5, 6, 7, 8, 9, 10');
@@ -164,7 +169,20 @@ test('basic testing', async ({ page, browser }) => {
     await page.getByTestId('home').click();
 
     await page.reload();
-    await expect(page.getByRole('link', { name: edited_test_title })).toBeVisible();
+
+    console.log('Trying to post a new post');
+    tag = 'test-tag'; 
+    await postPost(page, 'A completely new post', 'random content', tag);
+    await page.goto('http://localhost:3010');
     
+    await expect(page.getByText('2024 (2)')).toBeVisible();
+    await expect(page.getByText('random content')).toBeVisible();
+    await expect(page.getByRole('link', { name: edited_test_title })).toBeVisible();
+
+    // make sure the basic post view opens
+    await page.getByRole('link', { name: 'really badly edited test post' }).click();
+    await expect(page.getByText('LOADING')).toBeHidden();
+    await expect(page.getByText('jeejee')).toBeVisible();
+    await expect(page.getByText('random content')).toBeHidden();
 });;
 
