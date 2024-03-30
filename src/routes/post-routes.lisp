@@ -57,6 +57,13 @@
 	  (setf (hunchentoot:return-code*) 404)
 	  ""))))
 
+(defroute unhidden-post ("/api/posts/post/:id" :method :get :decorators (@json
+									 @transaction)) ()
+  (let* ((post (get-post id)))
+    (log:info "returning unhidden post { ~{~a~%~} }~%" (alexandria:hash-table-alist post))
+    (stringify post)))
+  
+
 ;; routes that write to the db
 (defroute post-creation-route ("/api/posts/post" :method :post
 						 :decorators (@json

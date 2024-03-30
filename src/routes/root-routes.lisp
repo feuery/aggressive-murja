@@ -100,7 +100,9 @@
 (defroute mediamgr ("/blog/mediamanager" :method :get) ()
   *root*)
 
-(defroute mediamgr ("/blog/postadmin" :method :get) ()
+(defroute postmgr ("/blog/postadmin" :method :get) ()
   *root*)
 
 
+(defroute post-view ("/blog/post/:id" :method :get) ()
+  *root*)
