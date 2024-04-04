@@ -106,3 +106,6 @@
 
 (defroute post-view ("/blog/post/:id" :method :get) ()
   *root*)
+
+(defroute edit ("/blog/post/edit/:id" :method :get) ()
+  *root*)

@@ -44,8 +44,9 @@
   
   (let* ((show-hidden? (string= hidden "true"))
 	 (post (get-post id :allow-hidden? show-hidden?)))
-    (log:info "returning post (hidden allowed? ~a) { ~{~a~%~} }~%" hidden (alexandria:hash-table-alist post))
-    (stringify post)))
+    (when post
+      (log:info "returning post (hidden allowed? ~a) { ~{~a~%~} }~%" hidden (alexandria:hash-table-alist post))
+      (stringify post))))
 
 (defroute get-post-version-route ("/api/posts/post/:id/version/:version" :method :get
 								   :decorators (@json

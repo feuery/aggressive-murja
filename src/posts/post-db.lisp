@@ -36,8 +36,10 @@
 	    resulting-page)))
 
 (defun get-post (id &key allow-hidden?)
-  (let ((post (aref (get-by-id* id allow-hidden?) 0)))
-    (fix-post post)))
+  (let* ((posts (coerce (get-by-id* id allow-hidden?) 'list))
+	 (post (first posts)))
+    (when post
+      (fix-post post))))
     
 (defun get-post-version (id version)
   (let ((post (first (coerce (get-versioned-by-id* id version) 'list))))

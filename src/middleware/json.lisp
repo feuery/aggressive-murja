@@ -5,4 +5,8 @@
 
 (defun @json (next)
   (setf (hunchentoot:content-type*) "application/json")
-  (funcall next))
+  (let ((result (funcall next)))
+    (if result
+	result
+	(progn (setf (hunchentoot:return-code*) 404) ""))))
+	
