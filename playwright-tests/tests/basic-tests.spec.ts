@@ -42,6 +42,19 @@ async function postPost(page, title, post, tag) {
 
     await expect(page.locator('#tag-select')).toContainText(tag);
 
+    // make sure preview works
+    await expect(page.locator('#show-preview-cb')).not.toBeChecked();
+    await expect(page.locator('.post')).toBeHidden();
+
+    await page.locator('#show-preview-cb').click();
+
+    await expect(page.locator('.post')).toBeVisible();
+    await page.locator('#show-preview-cb').click();
+
+    await expect(page.locator('.post')).toBeHidden();
+
+    // save the post
+
     await page.locator('#editor-post-save').click();
     await page.getByTestId('home').click();
 }
