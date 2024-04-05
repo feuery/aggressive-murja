@@ -217,5 +217,31 @@ test('basic testing', async ({ page, browser }) => {
 
     // test images
     await postPost(page, 'Image post', 'this is image content', tag, true);
+    await page.goto('http://localhost:3010');
+    await postPost(page, 'Image post2', 'this is image content2', tag, true);
+
+    // test media manager
+    await page.getByText('Manage media').click();
+    await expect(page.locator('details > img')).toHaveCount(2);
+
+    for(let cb in await page.locator('input[type="checkbox"]').all) {	
+	await expect(cb).not.toBeChecked();
+    }
+    await page.getByText('Select all').click();
+
+    for(let cb in await page.locator('input[type="checkbox"]').all) {	
+	await expect(cb).toBeChecked();
+    }
+
+    await page.evaluate(() => document.querySelectorAll('input[type="checkbox"]').forEach(input => input.checked = false));
+
+    let checkbox_labels = await page.getByText('Choose for deletion').all();
+    await checkbox_labels[0].click();
+    await page.getByText('Remove selected').click();
+    await expect(page.locator('details > img')).toHaveCount(1);
+
+    await page.getByText('Select all').click();
+    await page.getByText('Remove selected').click();
+    await expect(page.locator('details > img')).toHaveCount(0);
 });;
 

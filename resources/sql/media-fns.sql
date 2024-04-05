@@ -11,7 +11,7 @@ select id, name from blog.media;
 
 -- name: delete-picture* :!
 -- returns: :array-hash
-delete from blog.media where id = $1§;
+delete from blog.media where id = $1;
 
 -- name: select-referencing-posts* :?
 -- returns: :array-hash

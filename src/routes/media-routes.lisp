@@ -1,9 +1,9 @@
 (defpackage murja.routes.media-routes
   (:use :cl)
   (:import-from :lisp-fixup :slurp-bytes)
-  (:import-from :com.inuoe.jzon :stringify)
+  (:import-from :com.inuoe.jzon :stringify :parse)
   (:import-from :murja.middleware.db :@transaction)
-  (:import-from :murja.media.media-db :list-pictures :insert-media :select-referencing-posts* :get-media)
+  (:import-from :murja.media.media-db :delete-picture* :list-pictures :insert-media :select-referencing-posts* :get-media)
    
   (:import-from :murja.middleware.json :@json)
   (:import-from :murja.middleware.auth :@authenticated :@can? :*user*)
@@ -52,3 +52,16 @@
     (setf (hunchentoot:header-out "Content-Disposition")
 	  (format nil "inline; filename=~a" (gethash "name" pic)))
     (gethash "data" pic)))
+
+(defroute delete-pic ("/api/pictures" :method :delete
+				      :decorators (@transaction
+						   @authenticated
+						   @json
+						   (@can? "create-post"))) ()
+  (let* ((request-body (parse (hunchentoot:raw-post-data :force-text t)))
+	 (ids (coerce (gethash "ids" request-body) 'list)))
+    (log:info "Deleting pictures from ids ~a~%" ids)
+    (dolist (id ids)
+      (delete-picture* id))
+    (setf (hunchentoot:return-code*) 204)
+    ""))
