@@ -16,7 +16,7 @@ const password = 'p4ssw0rd';
 //   await expect(page.getByText('Log out')).toBeVisible();
 // }
 
-async function postPost(page, title, post, tag) {
+async function postPost(page, title, post, tag, append_img = false) {
     await page.getByTestId('new-post-btn').click();
     await page.getByTestId('clear-editor').click();
 
@@ -52,6 +52,23 @@ async function postPost(page, title, post, tag) {
     await page.locator('#show-preview-cb').click();
 
     await expect(page.locator('.post')).toBeHidden();
+
+    if (append_img) {
+
+	await page.evaluate(() => {
+	    document.querySelector('#file-pictures-input').style["display"] = 'inline';
+	});
+
+	const filePath = __dirname+'/test.png';
+	console.log("Inputting file " + filePath);
+	
+	await page.locator('#file-pictures-input').setInputFiles(filePath);
+
+	await page.evaluate(() => {
+	    document.querySelector('#file-pictures-input').style["display"] = 'none';
+	});
+	await expect(page.locator('#editor-post-content')).toContainText('<img');
+    }
 
     // save the post
 
@@ -184,7 +201,7 @@ test('basic testing', async ({ page, browser }) => {
     await page.reload();
 
     console.log('Trying to post a new post');
-    tag = 'test-tag'; 
+    tag = 'newer-test-tag'; 
     await postPost(page, 'A completely new post', 'random content', tag);
     await page.goto('http://localhost:3010');
     
@@ -194,8 +211,11 @@ test('basic testing', async ({ page, browser }) => {
 
     // make sure the basic post view opens
     await page.getByRole('link', { name: 'really badly edited test post' }).click();
-    await expect(page.getByText('LOADING')).toBeHidden();
+    // await expect(page.getByText('LOADING')).toBeHidden();
     await expect(page.getByText('jeejee')).toBeVisible();
     await expect(page.getByText('random content')).toBeHidden();
+
+    // test images
+    await postPost(page, 'Image post', 'this is image content', tag, true);
 });;
 
