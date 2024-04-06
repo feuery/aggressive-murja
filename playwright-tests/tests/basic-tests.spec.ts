@@ -224,12 +224,27 @@ test('basic testing', async ({ page, browser }) => {
     await page.getByText('Manage media').click();
     await expect(page.locator('details > img')).toHaveCount(2);
 
-    for(let cb in await page.locator('input[type="checkbox"]').all) {	
+    // Test the referencing posts thing
+    let referencing_details = await page.getByTestId("referencing-post").all();
+
+    console.log('posts: ' + (await page.getByText('Referencing posts').all())); 
+    
+    await expect(referencing_details.length == 2).toBeTruthy();
+
+    await referencing_details[0].click();
+    await expect(page.getByRole('link', { name: 'Image post' })).toBeVisible();
+
+    await referencing_details[1].click();
+    await expect(page.getByRole('link', { name: 'Image post2' })).toBeVisible();
+    
+    // Test deletion
+
+    for(let cb of await page.locator('input[type="checkbox"]').all()) {	
 	await expect(cb).not.toBeChecked();
     }
     await page.getByText('Select all').click();
 
-    for(let cb in await page.locator('input[type="checkbox"]').all) {	
+    for(let cb of await page.locator('input[type="checkbox"]').all()) {	
 	await expect(cb).toBeChecked();
     }
 
