@@ -43,15 +43,17 @@
 
 (defroute picture-route ("/api/pictures/:guid" :method :get
 					       :decorators (@transaction)) ()
-  (let ((pic (aref (get-media guid) 0)))
-    ;; murja doesn't persist images' exact mime (yet), and we don't want
-    ;; browsers calling straight to this endpoint downloading these images
-    ;; (so application/octet-stream can't be used), so we return nil as
-    ;; content-type (as the old clj-murja does) for now
-    (setf (hunchentoot:content-type*) nil)
-    (setf (hunchentoot:header-out "Content-Disposition")
-	  (format nil "inline; filename=~a" (gethash "name" pic)))
-    (gethash "data" pic)))
+  (let* ((pic-result (coerce (get-media guid) 'list))
+	 (pic (first pic-result)))
+    (when pic
+      ;; murja doesn't persist images' exact mime (yet), and we don't want
+      ;; browsers calling straight to this endpoint downloading these images
+      ;; (so application/octet-stream can't be used), so we return nil as
+      ;; content-type (as the old clj-murja does) for now
+      (setf (hunchentoot:content-type*) nil)
+      (setf (hunchentoot:header-out "Content-Disposition")
+	    (format nil "inline; filename=~a" (gethash "name" pic)))
+      (gethash "data" pic))))
 
 (defroute delete-pic ("/api/pictures" :method :delete
 				      :decorators (@transaction
