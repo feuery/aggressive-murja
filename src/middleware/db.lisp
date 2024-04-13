@@ -1,5 +1,6 @@
 (defpackage murja.middleware.db
-  (:use :cl :postmodern))
+  (:use :cl :postmodern)
+  (:export :connect-murjadb-toplevel))
 
 (in-package :murja.middleware.db)
 
@@ -17,20 +18,29 @@
 		     (parse-integer port-str)
 		     5432))))
 
-(defun @transaction (next)
+(defun connect-murjadb-toplevel ()
   (destructuring-bind (&key db username password host port) (db-config)
-    (handler-bind ((cl-postgres:database-socket-error
+    (postmodern:connect-toplevel db username password host :port port)))
+
+;; (connect-murjadb-toplevel)
+
+(defmacro with-db (&rest body)
+  `(destructuring-bind (&key db username password host port) (db-config)
+     (format t "Connecting to db ~a ~%" (list db username "$password" host :port port))
+     (with-connection (list db username password host :port port)
+       ,@body)))
+
+(defun @transaction (next)
+  (with-db
+      (handler-bind ((cl-postgres:database-socket-error
 		     (lambda (c)
 		       (format t "Socket error from db: ~a~%" c)
 		       (setf (hunchentoot:return-code*) 500)
-		       (return-from @transaction "Internal Server Error"))))
-      (with-connection (list db username password host :port port)
-
-	(with-schema (:blog :if-not-exist nil)
-	  (handler-bind ((cl-postgres:database-error
-			   (lambda (c)
-			     (format t "Error from db: ~a~%" c)
-			     (setf (hunchentoot:return-code*) 500)
-			     (return-from @transaction "Internal Server Error"))))
-	    (with-transaction ()
-	      (funcall next))))))))
+		       (return-from @transaction "Internal Server Error")))
+		     (cl-postgres:database-error
+		       (lambda (c)
+			 (format t "Error from db: ~a~%" c)
+			 (setf (hunchentoot:return-code*) 500)
+			 (return-from @transaction "Internal Server Error"))))
+	(with-transaction ()
+	  (funcall next)))))

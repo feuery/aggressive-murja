@@ -1,7 +1,7 @@
 (defpackage halisql
   (:use :cl :binding-arrows)
   (:import-from :lisp-fixup :slurp-utf-8 :drop :partial  :compose)
-  (:export :*log* :defqueries :*system-name*))
+  (:export :get-sql :*log* :pick-queries :defqueries :*system-name*))
 
 (in-package :halisql)
 
@@ -68,16 +68,19 @@
 	(apply #'max params )
 	0)))
 
+(defun pick-queries (file-path)
+  (->> (uiop:split-string
+	(slurp-sql file-path)
+	:separator '(#\;))
+    (mapcar (lambda (fn)
+	      (uiop:split-string fn :separator '(#\Newline))))
+    (remove-if (lambda (query)
+		 (every (partial #'string= "") query)))))
+
 (defparameter *log* nil)
 
 (defmacro defqueries (file-path)
-  (let ((queries (->> (uiop:split-string
-		       (slurp-sql file-path)
-		       :separator '(#\;))
-		   (mapcar (lambda (fn)
-			     (uiop:split-string fn :separator '(#\Newline))))
-		   (remove-if (lambda (query)
-				(every (partial #'string= "") query))))))
+  (let ((queries (pick-queries file-path)))
     `(progn
        ,@(->> queries
 	   (mapcar (lambda (query)

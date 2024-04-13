@@ -1,0 +1,112 @@
+on:
+  push:
+    branches: [main]
+
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: aggressive-murja
+  
+jobs:
+  build:
+    name: "Build murja image"
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: read
+      packages: write    
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout code
+
+      - name: Install tools
+        run: sudo apt-get install npm uglifyjs -q -y
+
+      - name: Install elm
+        run: npm install -g elm
+        
+      - name: Install quicklisp
+        run: |
+          curl https://beta.quicklisp.org/quicklisp.lisp -o ./quicklisp.lisp
+
+      - name: Build murja
+        run: |
+          cd elm-frontti
+          elm make src/Main.elm --output murja.js
+          uglifyjs murja.js --compress 'pure_funcs="F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9",pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle > murja.min.js
+          cd ../
+          mv elm-frontti/murja.min.js resources/js/murja.js
+          
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/feuery/murja:latest
+            ghcr.io/feuery/murja:${{ github.sha }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  test-playwright:
+    name: Runs playwright browserr tests
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout code
+        
+      - name: Start the database
+        run: |
+          docker-compose up -d
+          
+      - name: Start murja
+        id: tests
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/feuery/murja:latest
+          options: -v ${{ github.workspace }}:/workspace -v ${{ github.workspace }}/config:/etc/murja -e MURJA_DB_HOST=db -e MURJA_E2E=e2e -p 3010:3010 --network aggressive-murja_murja_test_network
+          run: |
+            set -eux
+
+            (./murja_server 2>&1 | grep -vi Firefox)&
+            
+            cd /workspace
+            
+            apt-get -qq install curl npm
+            curl -v http://localhost:3010
+            
+            npm install -g n
+            n lts
+
+            hash -r
+            npm install -g npm
+            
+            cd playwright-tests
+            npm ci
+            npx playwright install --with-deps
+            npx playwright test --reporter=line
+            find . -name '*.webm'
+
+      - uses: actions/upload-artifact@v3
+        if: always() && steps.tests.outcome == 'failure'
+        with:
+          name: playwright-report
+          path: ${{ github.workspace }}/playwright-tests/test-results
+          if-no-files-found: error
+          retention-days: 30                    

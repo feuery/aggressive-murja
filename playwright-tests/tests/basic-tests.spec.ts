@@ -121,7 +121,8 @@ test('basic testing', async ({ page, browser }) => {
     await expect(page.locator('.tag')).toHaveText(tag);
 
     // edit the post
-    for(let x = 0; x < 10; x++) {	
+    for(let x = 0; x < 10; x++) {
+	console.log('x: ' + x);
 	await page.getByTestId('edit-post-btn').click();
 
 	await expect(page.getByTestId('article-id')).not.toContainText('Article: No id');

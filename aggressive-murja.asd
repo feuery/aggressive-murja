@@ -23,7 +23,9 @@
 		:components
 		((:module "local-lib"
 		  :components ((:file "lisp-fixup")
-			       (:file "halisql")))
+			       (:file "halisql")
+			       (:file "migrations")))
+		 (:file "migration-list")
 		 (:module "users"
 		  :components ((:file "user-db")))
 		 (:module "middleware"
