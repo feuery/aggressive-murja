@@ -154,11 +154,14 @@ WHERE p.tags ?? 'landing-page' AND NOT p.tags ?? 'hidden';
 
 
 -- name: get-tagged*
-SELECT p.ID, p.Title, p.created_at, p.Content, p.tags, u.Username, u.Nickname, u.Img_location, 0 AS "amount-of-comments"
+-- returns: :array-hash
+SELECT p.ID, p.Title, p.Content, p.created_at, p.tags, 0 AS "amount-of-comments", json_build_object('username', u.Username, 'nickname', u.Nickname, 'img_location', u.Img_location) as "creator", json_agg(DISTINCT version) as "versions"
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
-WHERE p.tags @> :tags AND (NOT p.tags ?? 'hidden' OR (p.tags ?? 'hidden' AND :show-hidden))  	     	
-      	     	      and ((NOT p.tags ?? 'unlisted') OR :show-hidden);
+LEFT JOIN blog.Post_History ph ON ph.id = p.id 
+WHERE p.tags ? $1 AND (NOT p.tags ? 'hidden' OR (p.tags ? 'hidden' AND $2))
+      	     	      and ((NOT p.tags ? 'unlisted') OR $2)
+GROUP BY p.ID, u.ID;
 
 -- name: insert-post
 -- (:title, :content, :creator-id, :tags) ==

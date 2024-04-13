@@ -258,5 +258,12 @@ test('basic testing', async ({ page, browser }) => {
     await page.getByText('Select all').click();
     await page.getByText('Remove selected').click();
     await expect(page.locator('details > img')).toHaveCount(0);
-});;
 
+    // Test tag based fetching
+    await page.goto('http://localhost:3010/blog/tags/newer-test-tag');
+    await expect(page.locator('.post')).toHaveCount(3);
+
+    await page.goto('http://localhost:3010/blog/tags/test-tag');
+    await expect(page.locator('.post')).toHaveCount(1);
+    
+});

@@ -109,3 +109,6 @@
 
 (defroute edit ("/blog/post/edit/:id" :method :get) ()
   *root*)
+
+(defroute root-blg-2 ("/blog/tags/:tag" :method :get) ()
+  *root*)

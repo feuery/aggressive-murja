@@ -63,7 +63,13 @@
   (let* ((post (get-post id)))
     (log:info "returning unhidden post { ~{~a~%~} }~%" (alexandria:hash-table-alist post))
     (stringify post)))
-  
+
+(defroute tagged-posts-route ("/api/posts/tagged/:tag" :method :get
+						       :decorators (@json
+								    @transaction)) ()
+  (when (and (not (string= tag "hidden"))
+	     (not (string= tag "unlisted")))
+    (stringify (murja.posts.post-db:get-tagged tag :allow-hidden? nil))))
 
 ;; routes that write to the db
 (defroute post-creation-route ("/api/posts/post" :method :post
