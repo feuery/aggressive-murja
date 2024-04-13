@@ -1,2 +1,9 @@
 *~
 *.fasl
+elm-frontti/*.html
+elm-frontti/*.js
+elm-frontti/elm-stuff/*
+*cookies
+*input.json
+/elm-frontti/src/elm.js
+/elm-frontti/TAGS

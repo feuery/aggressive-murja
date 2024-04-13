@@ -1,1 +1,1 @@
-../../old-murja/elm-frontti/elm.js
+../../elm-frontti/elm.js

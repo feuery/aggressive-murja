@@ -16,4 +16,4 @@
     (format t "Started murja server on ~a ~%" port)
     server))
 
-;;(start-server :port 3010)
+(start-server :port 3010)
