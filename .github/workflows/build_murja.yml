@@ -19,7 +19,7 @@ jobs:
         name: Checkout code
 
       - name: Install tools
-        run: sudo apt-get install npm uglifyjs -q -y
+        run: sudo apt-get update && sudo apt-get install npm uglifyjs -q -y
 
       - name: Install elm
         run: npm install -g elm
