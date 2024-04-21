@@ -73,7 +73,7 @@ async function postPost(page, title, post, tag, append_img = false) {
     // save the post
 
     await page.locator('#editor-post-save').click();
-    await page.getByTestId('home').click();
+    await page.goto('http://localhost:3010');
 }
 
 test('basic testing', async ({ page, browser }) => {
@@ -136,7 +136,7 @@ test('basic testing', async ({ page, browser }) => {
 	});
 
 	await page.locator('#editor-post-save').click();
-	await page.getByTestId('home').click();
+	await page.goto('http://localhost:3010');
 
 	await expect(page.locator('.post')).toContainText("edited article");
 	await expect(page.locator('.post')).not.toContainText(post);
@@ -154,7 +154,7 @@ test('basic testing', async ({ page, browser }) => {
     await page.locator('#new-tag-btn').click();
     await page.locator('#tag-select').selectOption('hidden');
     await page.locator('#editor-post-save').click();
-    await page.getByTestId('home').click();
+    await page.goto('http://localhost:3010');
 
     await expect(page.locator('.post')).toBeHidden();
     // make it visible
@@ -168,8 +168,8 @@ test('basic testing', async ({ page, browser }) => {
     await page.getByTestId('remove-tag').click();
     await page.locator('#editor-post-title').fill('Latest test post');
     
-    await page.locator('#editor-post-save').click();    
-    await page.getByTestId('home').click();
+    await page.locator('#editor-post-save').click();
+    await page.goto('http://localhost:3010');
 
     await page.getByTestId('edit-post-btn').click();
 
@@ -180,7 +180,7 @@ test('basic testing', async ({ page, browser }) => {
 	console.log('success');
     });	    
     await page.locator('#editor-post-save').click();
-    await page.getByTestId('home').click();
+    await page.goto('http://localhost:3010');
 
     const new_ctx = await browser.newContext();
     // Create a new page inside context.
@@ -197,7 +197,7 @@ test('basic testing', async ({ page, browser }) => {
     await page.locator('#editor-post-title').fill(edited_test_title);
 
     await page.locator('#editor-post-save').click();
-    await page.getByTestId('home').click();
+    await page.goto('http://localhost:3010');
 
     await page.reload();
 
