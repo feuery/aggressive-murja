@@ -112,3 +112,6 @@
 
 (defroute root-blg-2 ("/blog/tags/:tag" :method :get) ()
   *root*)
+
+(defroute sdkfpsokopfs ("/blog/post/:post/version/:ver" :method :get) ()
+  *root*)

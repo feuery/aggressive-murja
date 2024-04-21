@@ -20,12 +20,6 @@ FROM blog.Post p
 WHERE $1 OR (NOT p.tags ? 'unlisted' AND NOT p.tags ? 'hidden')
 ORDER BY p.created_at DESC;
 
--- name: post-versions*
-SELECT version 
-FROM blog.Post_History 
-WHERE ID = :post-id AND NOT tags ? 'hidden' 
-ORDER BY version ASC;
-
 -- name: get-by-id*
 -- returns: :array-hash
 SELECT p.ID,
@@ -40,10 +34,11 @@ SELECT p.ID,
 			 u.Nickname,
 			 'img_location',
 			 u.Img_location) as "creator",
-       '[]'::json as "versions",
-       null as "version"
+       (SELECT MAX(version) + 1 FROM blog.Post_History phh WHERE (phh.id = p.id AND ((not phh.tags ? 'unlisted') OR $2) AND ((not phh.tags ? 'hidden') OR $2))) AS version,
+       json_agg(DISTINCT version) as "versions"
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
+LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND ((not ph.tags ? 'unlisted') OR $2) AND ((not ph.tags ? 'hidden') OR $2))
 WHERE p.ID = $1 AND (NOT p.tags ? 'hidden' OR (p.tags ? 'hidden' AND $2))
 GROUP BY p.ID, u.ID;
 
@@ -57,10 +52,12 @@ SELECT p.ID, p.Title, p.created_at, p.Content, p.tags, p.version, 0 AS "amount-o
 			 u.Nickname,
 			 'img_location',
 			 u.Img_location) as "creator",
-       '[]'::json as "versions"
+     json_agg(DISTINCT ph.version) as "versions"
 FROM blog.Post_History p
 JOIN blog.Users u ON u.ID = p.creator_id
-WHERE p.ID = $1 AND p.version = $2 AND not tags ? 'hidden';
+LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND (not ph.tags ? 'unlisted') AND (not ph.tags ? 'hidden'))
+WHERE p.ID = $1 AND p.version = $2 AND not p.tags ? 'hidden'
+GROUP BY p.ID, p.Title, p.created_at, p.Content, p.tags, p.version, "amount-of-comments", u.username, u.nickname, u.img_location;
 
 
 -- name: get-all*
