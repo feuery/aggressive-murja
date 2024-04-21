@@ -1,9 +1,13 @@
 (defpackage lisp-fixup
   (:use :cl)
-  (:export :partial :compose :drop :slurp-bytes :slurp-utf-8))
+  (:export :sha-512 :partial :compose :drop :slurp-bytes :slurp-utf-8))
 
 (in-package :lisp-fixup)
 
+(defun sha-512 (str)
+  (ironclad:byte-array-to-hex-string
+    (ironclad:digest-sequence :sha512
+                              (ironclad:ascii-string-to-byte-array str))))
 
 ;; https://www.n16f.net/blog/reading-files-faster-in-common-lisp/
 (defun slurp-bytes (path)

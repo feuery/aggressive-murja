@@ -1,5 +1,6 @@
 (defpackage murja.routes.login-routes
   (:use :cl)
+  (:import-from :lisp-fixup :sha-512)
   (:import-from :murja.middleware.auth :@authenticated :*user*)
   (:import-from :murja.middleware.db :@transaction)
    
@@ -8,11 +9,6 @@
   (:import-from :com.inuoe.jzon :parse :stringify))
 
 (in-package :murja.routes.login-routes)
-
-(defun sha-512 (str)
-  (ironclad:byte-array-to-hex-string
-    (ironclad:digest-sequence :sha512
-                              (ironclad:ascii-string-to-byte-array str))))
 
 (defroute post-login ("/api/login/login" :method :post :decorators (@transaction @json)) ()
   (let* ((body-params (parse (hunchentoot:raw-post-data :force-text t)))

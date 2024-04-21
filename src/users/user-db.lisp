@@ -24,7 +24,13 @@
 
 (defun select-user-by-login (username password-sha)
   (let ((usr (first (coerce  (query-users* username password-sha) 'list))))
-    (when usr
-      (jsonize-key usr "permissions"))))
+    (if usr
+	(jsonize-key usr "permissions")
+	(let ((usrs (coerce (postmodern:query "SELECT * FROM blog.Users" :alists) 'list)))
+	  (unless usrs
+	    (log:error "There are no users in the db"))
+	  
+	  (log:warn "login failed with params ~a, ~a. Users in db: ~{~a~%~}" username password-sha usrs)
+	  nil))))
 
   ;;(postmodern:connect-toplevel "blogdb" "blogadmin" "blog" "localhost")

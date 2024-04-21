@@ -1,7 +1,7 @@
 (defpackage murja.migrations
   (:use :halisql)
   (:use :cl)
-  (:export :defmigration :migrate))
+  (:export :deflispmigration :defmigration :migrate))
 
 (in-package :murja.migrations)
 
@@ -42,6 +42,34 @@
 
     (unless found-migration?
       (push (cons path fn) *migrations*))))
+
+(defmacro deflispmigration (filename-sym path &rest body)
+  `(let* ((,filename-sym (asdf:system-relative-pathname *system-name*
+							(format nil "resources/sql/~a.sql" ,path)))
+	  ;; ragtime legacy, migration filenames are named .up.sql but they were saved into the public.ragtime_migrations without the .up.sql postfix
+	  ;; and murja.migrations/halisql system drops the .sql extension, but halisql functions don't handle the .up. string correctly
+	  (path (str:replace-all ".up" "" ,path))
+	  (fn (lambda ()
+		,@body))
+	  (found-migration? nil))
+     (dolist (mig *migrations*)
+       (when (string= (first mig) path)
+	 (setf (cdr mig) fn)
+	 (setf found-migration? t)
+	 (return)))
+
+     (unless found-migration?
+       (push (cons path fn) *migrations*))))
+
+(defun defmigration (file-path &key initial)
+  (deflispmigration filename file-path
+      (cond ((and initial (not (migration-table-exists)))
+	     (postmodern:execute-file filename))
+
+	    ((and (migration-table-exists) (not (migration-does-exist path)))
+	     (postmodern:execute-file filename))
+
+	    (t (log:info "Didn't run ~a" path)))))
 
 (defun migrate ()
   (postmodern:with-transaction ()
