@@ -1,7 +1,7 @@
 (defpackage halisql
   (:use :cl :binding-arrows)
   (:import-from :lisp-fixup :slurp-utf-8 :drop :partial  :compose)
-  (:export :get-sql :*log* :pick-queries :defqueries :*system-name*))
+  (:export :slurp-sql :get-sql :*log* :pick-queries :defqueries :*system-name*))
 
 (in-package :halisql)
 
