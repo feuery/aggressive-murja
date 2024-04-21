@@ -21,16 +21,21 @@
 (defmigration "014-tag-hidden-unlisted-validator.up")
 (defmigration "015-image-post-pairing-view.up")
 
+(defun prepare-e2e-migration ()
+  (postmodern:execute "DELETE FROM blog.Users")
+  (postmodern:execute "DELETE FROM blog.Media")
+  (let ((user-id (caar (postmodern:query "INSERT INTO blog.Users (username, nickname, img_location, password) VALUES ($1, $2, $3, $4) returning id"
+					 "Playwright-user"
+					 "playwrighte"
+					 ""
+					 (sha-512 "p4ssw0rd")))))
+    (postmodern:execute "insert into blog.groupmapping (userid, groupid, primarygroup) values ($1, $2, $3)"
+			user-id 1 t)))
+
 (deflispmigration _ "e2e-migration"
   (declare (ignore _))
   (log:info "Running e2e-migration")
   (when (sb-ext:posix-getenv "MURJA_E2E")
-    (let ((user-id (caar (postmodern:query "INSERT INTO blog.Users (username, nickname, img_location, password) VALUES ($1, $2, $3, $4) returning id"
-			"Playwright-user"
-			"playwrighte"
-			""
-			(sha-512 "p4ssw0rd")))))
-      (postmodern:execute "insert into blog.groupmapping (userid, groupid, primarygroup) values ($1, $2, $3)"
-			  user-id 1 t))))
+    (prepare-e2e-migration)))
 
 ;; (murja.migrations:migrate)
