@@ -23,20 +23,20 @@ ORDER BY p.created_at DESC;
 -- name: post-versions*
 SELECT version 
 FROM blog.Post_History 
-WHERE ID = :post-id AND NOT tags ?? 'hidden' 
+WHERE ID = :post-id AND NOT tags ? 'hidden' 
 ORDER BY version ASC;
 
 -- name: next-post-id
 SELECT p.ID 
 FROM blog.Post p
-WHERE p.ID < :post-id AND NOT p.tags ?? 'hidden'
+WHERE p.ID < :post-id AND NOT p.tags ? 'hidden'
 ORDER BY p.ID DESC
 LIMIT 1;
 
 -- name: prev-post-id 
 SELECT p.ID 
 FROM blog.Post p
-WHERE p.ID > :post-id AND NOT p.tags ?? 'hidden'
+WHERE p.ID > :post-id AND NOT p.tags ? 'hidden'
 ORDER BY p.ID ASC
 LIMIT 1;
 
@@ -86,7 +86,7 @@ SELECT p.id, p.Title, p.Content, p.created_at, p.tags, u.Username, u.Nickname, u
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
 LEFT JOIN blog.Comment c ON c.parent_post_id = p.ID
-WHERE NOT p.tags ?? 'hidden'
+WHERE NOT p.tags ? 'hidden'
 GROUP BY p.ID, u.ID
 ORDER BY p.created_at DESC
 -- this isn't going to work :)
@@ -114,7 +114,7 @@ OFFSET $1;
 -- name: landing-page-ids*
 SELECT id
 FROM blog.Post 
-WHERE tags ?? 'landing-page' AND NOT tags ?? 'hidden';
+WHERE tags ? 'landing-page' AND NOT tags ? 'hidden';
 
 -- name: get-posts-tags* 
 SELECT tags FROM blog.Post WHERE id = :post-id;
@@ -144,13 +144,13 @@ SELECT p.ID, p.Title, p.created_at, p.Content, p.tags, u.Username, u.Nickname, u
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
 LEFT JOIN blog.Comment c ON c.parent_post_id = p.ID
-WHERE p.tags ?? 'landing-page' AND NOT p.tags ?? 'hidden'
+WHERE p.tags ? 'landing-page' AND NOT p.tags ? 'hidden'
 GROUP BY p.ID, u.ID;
 
 -- name: landing-page-title 
 SELECT p.Title, p.Id
 FROM blog.Post p
-WHERE p.tags ?? 'landing-page' AND NOT p.tags ?? 'hidden';
+WHERE p.tags ? 'landing-page' AND NOT p.tags ? 'hidden';
 
 
 -- name: get-tagged*
