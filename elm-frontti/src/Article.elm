@@ -21,11 +21,9 @@ import Time
 --   "comments": [],
 --   "amount-of-comments": 0,
 --   "title": "Testi Posti",
---   "prev-post-id": null,
 --   "id": 1,
 --   "versions": [],
 --   "version": null,
---   "next-post-id": null,
 --   "created_at": "2020-10-16T07:52:59Z"
 -- }
 
@@ -44,11 +42,9 @@ type alias Article =
     , comments : Maybe (List String)
     -- , amount_of_comments : Int
     , title : String
-    , pre_post_id : Maybe Int
     , id : Maybe Int
     , versions: Maybe (List Int)
     , version : Maybe Int
-    -- , next_post_id: Maybe Int
     , created_at: Maybe Time.Posix
     }
 
@@ -63,7 +59,6 @@ encode article =
                                          Just comments -> comments
                                          Nothing -> [])))
         , ( "title", string article.title)
-        , ( "pre_post_id", (maybe int) article.pre_post_id)
         , ( "id", (maybe int) article.id)
         , ( "version", (maybe int) article.version)
         , ( "created_at", (maybe iso8601) article.created_at)
@@ -78,11 +73,9 @@ contentDecoder = Decode.field "content" Decode.string
 commentsDecoder = Decode.maybe (Decode.field "comments" (Decode.list Decode.string))
 -- amount_of_commentsDecoder = Decode.field "amount-of-comments" Decode.int                  
 titleDecoder = Decode.field "title" Decode.string
-pre_post_idDecoder = Decode.maybe (Decode.field "prev-post-id"  Decode.int)
 idDecoder = Decode.maybe ( Decode.field "id" Decode.int)
 versionsDecoder = Decode.maybe (Decode.field "versions" (Decode.list Decode.int))
 versionDecoder = Decode.maybe (Decode.field "version" Decode.int)
--- next_post_idDecoder = Decode.field "next-post-id" (Decode.maybe Decode.int)
 created_atDecoder = Decode.field "created_at" (Decode.maybe Extra.iso8601)
 creator_Decoder = Decode.field "creator" creatorDecoder                    
 
@@ -95,7 +88,6 @@ articleDecoder =
         |> decodeApply contentDecoder
         |> decodeApply commentsDecoder
         |> decodeApply titleDecoder
-        |> decodeApply pre_post_idDecoder
         |> decodeApply idDecoder
         |> decodeApply versionsDecoder
         |> decodeApply versionDecoder

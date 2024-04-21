@@ -205,7 +205,7 @@ update msg model =
                         ({ model | loginState = LoggedIn user 
                          , postEditorSettings = Just (PostEditorSettings
                                                           (Maybe.withDefault 
-                                                               (Article.Article (C.Creator user.username user.nickname user.img_location) [""] "" Nothing "New post" Nothing Nothing (Just []) Nothing Nothing)
+                                                               (Article.Article (C.Creator user.username user.nickname user.img_location) [""] "" Nothing "New post" Nothing (Just []) Nothing Nothing)
                                                                model.postFromLocalStorage)
                                                           "" False)}
                         , Cmd.none)
@@ -429,7 +429,7 @@ update msg model =
                 LoggedIn user ->
                     ({ model | postEditorSettings = Just (PostEditorSettings
                                                               (Maybe.withDefault 
-                                                                   (Article.Article (C.Creator user.username user.nickname user.img_location) [""] "" Nothing "New post" Nothing Nothing (Just []) Nothing Nothing)
+                                                                   (Article.Article (C.Creator user.username user.nickname user.img_location) [""] "" Nothing "New post" Nothing (Just []) Nothing Nothing)
                                                                    model.postFromLocalStorage)
                                                               "" False)}
                     , clearPostFromLS ())

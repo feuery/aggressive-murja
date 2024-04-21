@@ -26,20 +26,6 @@ FROM blog.Post_History
 WHERE ID = :post-id AND NOT tags ? 'hidden' 
 ORDER BY version ASC;
 
--- name: next-post-id
-SELECT p.ID 
-FROM blog.Post p
-WHERE p.ID < :post-id AND NOT p.tags ? 'hidden'
-ORDER BY p.ID DESC
-LIMIT 1;
-
--- name: prev-post-id 
-SELECT p.ID 
-FROM blog.Post p
-WHERE p.ID > :post-id AND NOT p.tags ? 'hidden'
-ORDER BY p.ID ASC
-LIMIT 1;
-
 -- name: get-by-id*
 -- returns: :array-hash
 SELECT p.ID,
@@ -54,10 +40,8 @@ SELECT p.ID,
 			 u.Nickname,
 			 'img_location',
 			 u.Img_location) as "creator",
-       null as "prev-post-id",
        '[]'::json as "versions",
-       null as "version",
-       null as "next-post-id"
+       null as "version"
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
 WHERE p.ID = $1 AND (NOT p.tags ? 'hidden' OR (p.tags ? 'hidden' AND $2))
@@ -73,9 +57,7 @@ SELECT p.ID, p.Title, p.created_at, p.Content, p.tags, p.version, 0 AS "amount-o
 			 u.Nickname,
 			 'img_location',
 			 u.Img_location) as "creator",
-       null as "prev-post-id",
-       '[]'::json as "versions",
-       null as "next-post-id"		 
+       '[]'::json as "versions"
 FROM blog.Post_History p
 JOIN blog.Users u ON u.ID = p.creator_id
 WHERE p.ID = $1 AND p.version = $2 AND not tags ? 'hidden';
