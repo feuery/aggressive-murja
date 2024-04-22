@@ -35,7 +35,8 @@ titleView title =  case (int_to_month_string title.month) of
                                , a [ href ("/blog/post/edit/" ++ String.fromInt title.id)
                                    , attribute "data-testid" "manager-edit-post-btn"
                                    , onClick (OpenPostEditor title.id)] [text "Edit"]
-                               , a [href ("/blog/post/remove/" ++ String.fromInt title.id)] [text "Remove"]
+                               -- this has never been implemented...
+                               -- , a [href ("/blog/post/remove/" ++ String.fromInt title.id)] [text "Remove"]
                                , div [class "post-admin-title" ]
                                    (List.append  [ h3 [] [text "Tags: "]]
                                         (List.map (\tag -> a [ href ("/blog/tags/" ++ tag)

@@ -80,8 +80,8 @@
     <script src=\"/resources/murja.js\"></script>
   </head>
   <body>
+    <div id=\"app\" />
     <script src=\"/resources/murja-helper.js\"></script>
-    <div id=\"#app\" />
   </body>
 </html>")
 
