@@ -5,5 +5,5 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
 murja_button params contents =
-    span (List.append params [ class "murja-button" ])
+    button (List.append params [ class "murja-button" ])
         contents

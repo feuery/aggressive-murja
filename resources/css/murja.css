@@ -226,6 +226,8 @@ header {
 .murja-button
 {
     border: 5px solid #00CC00;
+    background-color: #000;
+    color: #0C0;
     margin: 5px;
     border-radius: 15px;
 
