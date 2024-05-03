@@ -41,12 +41,12 @@
     (log:info "Migration result: ~a" 
       (cond ((and initial (not (migration-table-exists)))
 	     (postmodern:execute-file filename)
-	     (mark-migration-done file-path))
+	     (mark-migration-done path))
 
 	    ((and (migration-table-exists) (not (migration-does-exist path)))
-	     (log:info "Really running ~a" file-path)
+	     (log:info "Really running ~a" path)
 	     (postmodern:execute-file filename)
-	     (mark-migration-done file-path))
+	     (mark-migration-done path))
 
 	    (t (log:info "Didn't run ~a" path))))))
 

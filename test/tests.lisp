@@ -6,6 +6,7 @@
 (in-package :murja.tests)
 
 (def-suite main-suite)
+(in-suite main-suite)
 
 (defvar *test-server* nil)
 (defvar *test-port* 3001)
@@ -32,7 +33,7 @@
 	  (hunchentoot:stop *test-server*)
 	  (setf *test-server* nil)))))
 
-(def-test multiple-migrations (:suite main-suite :fixture prepare-db-and-server)
+(def-test multiple-migrations (:fixture prepare-db-and-server)
   (let ((successfully-migrated nil))
     (unwind-protect
 	 (progn
@@ -44,13 +45,17 @@
 	       (murja.migrations:migrate)
 	     (error (c)
 	       (log:error "Migrations failed ~a" c)
-	       (error 'fail)))
+	       (error "fail")))
 	   (log:info "Re-ran migrations")
 	   (setf successfully-migrated t)))
     (is (equalp successfully-migrated t))))
 	 
-(def-test history (:suite main-suite :fixture prepare-db-and-server)
-  ;;(is (equalp 3 55))
+(def-test history (:fixture prepare-db-and-server)
+  (is (equalp 3 55))
   (is (equalp 1 1)))
 
-;; (run! 'main-suite)
+(format t "Loaded the fucking tests~%")
+
+(if (and (sb-ext:posix-getenv "GHA")
+	 (not (run! 'main-suite)))
+    (sb-ext:exit :code 666))

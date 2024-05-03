@@ -14,15 +14,7 @@ pushd ~/common-lisp
 ln -s $current_dir
 popd
 
-
-if [ ! -d ~/common-lisp ]; then
-    current_dir=$(pwd)
-    
-    mkdir ~/common-lisp
-    pushd ~/common-lisp
-    ln -s $current_dir
-    popd
-fi
+ls -la ~/common-lisp
 
 sbcl --load ./build_murja.lisp
 

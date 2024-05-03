@@ -17,11 +17,14 @@
 		      "blog")
 	:host (or (sb-ext:posix-getenv "MURJA_DB_HOST")
 		  "localhost")
-	:port (let ((port-str (if *automatic-tests-on?*
-				  "2345"
-				  (sb-ext:posix-getenv "MURJA_DB_PORT"))))
+	:port (let ((port-str
+		      ;; return env-var if it exists (GHA, connecting straight to the automatic test db container)
+		      (or (sb-ext:posix-getenv "MURJA_DB_PORT")
+			  ;; return "2345", where autotest-db is on localhost (proxied to automatic-test-db:5432)
+			  (and *automatic-tests-on?* "2345"))))
 		 (if port-str
 		     (parse-integer port-str)
+		     ;; or else return the basic postgresql 5432 port
 		     5432))))
 
 (defun connect-murjadb-toplevel ()
