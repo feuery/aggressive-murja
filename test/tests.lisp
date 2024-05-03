@@ -1,7 +1,7 @@
 (defpackage murja.tests
   (:use :cl
    :fiveam)
-  (:export ))
+  (:export :main-suite))
 
 (in-package :murja.tests)
 
@@ -20,21 +20,15 @@
 	(postmodern:execute "DROP TABLE IF EXISTS public.ragtime_migrations")
 	(postmodern:execute "DROP TABLE IF EXISTS public.migrations_tracker")
 
-	;; (format t "Doing migrations: ~%")
-
-	;; (murja.migrations:migrate)
-
-	;; (format t "Done migrations: ~%")
-
 	(unwind-protect 
 	     (progn 
 	       (setf *test-server* (murja:start-server :port *test-port*))
 	       (format t "Starting the test &body~%")
 	       (&body))
 
-	  ;; (postmodern:execute "DROP SCHEMA IF EXISTS blog CASCADE;")
-	  ;; (postmodern:execute "DROP TABLE IF EXISTS public.ragtime_migrations")
-	  ;; (postmodern:execute "DROP TABLE IF EXISTS public.migrations_tracker")
+	  (postmodern:execute "DROP SCHEMA IF EXISTS blog CASCADE;")
+	  (postmodern:execute "DROP TABLE IF EXISTS public.ragtime_migrations")
+	  (postmodern:execute "DROP TABLE IF EXISTS public.migrations_tracker")
 	  (hunchentoot:stop *test-server*)
 	  (setf *test-server* nil)))))
 

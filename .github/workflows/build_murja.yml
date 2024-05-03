@@ -1,15 +1,51 @@
 on:
   push:
-    branches: [main]
-
-
+    branches:
+      - '*'
+    
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: aggressive-murja
   
 jobs:
+  test-lisp:
+    name: Runs the lisp integration tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout code
+
+      - name: Fetch quicklisp
+        run: |
+          curl https://beta.quicklisp.org/quicklisp.lisp -o ./quicklisp.lisp
+
+      - name: Start db
+        run: |
+          docker-compose up -d automatic-test-db 
+      - name: Setup and run tests
+        uses: addnab/docker-run-action@v3
+        with:
+          image: fukamachi/sbcl:latest
+          options: -v ${{ github.workspace }}:/workspace -v ${{ github.workspace }}/config:/etc/murja -e MURJA_DB_HOST=db -e MURJA_E2E=e2e -p 3010:3010 --network aggressive-murja_murja_test_network
+          run: |
+            cd /workspace
+
+            sbcl --load ./quicklisp.lisp --load ./install_ql.lisp
+
+            current_dir=$(pwd)
+            cd $HOME
+          
+            mkdir ~/common-lisp
+            cd ~/common-lisp
+            ln -s $current_dir
+            cd /workspace
+            sbcl --load run_tests.lisp  
   build:
     name: "Build murja image"
+    needs: test-lisp
     runs-on: 'ubuntu-latest'
     permissions:
       contents: read
@@ -58,9 +94,10 @@ jobs:
             ghcr.io/feuery/murja:latest
             ghcr.io/feuery/murja:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
-
+          
   test-playwright:
-    name: Runs playwright browserr tests
+    name: Runs playwright browser tests
+    if: false
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -73,7 +110,7 @@ jobs:
         
       - name: Start the database
         run: |
-          docker-compose up -d
+          docker-compose up -d db
           
       - name: Start murja
         id: tests
