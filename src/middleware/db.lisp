@@ -1,8 +1,12 @@
 (defpackage murja.middleware.db
   (:use :cl :postmodern)
-  (:export :connect-murjadb-toplevel))
+  (:export :connect-murjadb-toplevel
+	   :with-db
+	   :*automatic-tests-on?*))
 
 (in-package :murja.middleware.db)
+
+(defvar *automatic-tests-on?* nil)
 
 (defun db-config () 
   (list :db (or (sb-ext:posix-getenv "MURJA_DB")
@@ -13,7 +17,9 @@
 		      "blog")
 	:host (or (sb-ext:posix-getenv "MURJA_DB_HOST")
 		  "localhost")
-	:port (let ((port-str (sb-ext:posix-getenv "MURJA_DB_PORT")))
+	:port (let ((port-str (if *automatic-tests-on?*
+				  "2345"
+				  (sb-ext:posix-getenv "MURJA_DB_PORT"))))
 		 (if port-str
 		     (parse-integer port-str)
 		     5432))))

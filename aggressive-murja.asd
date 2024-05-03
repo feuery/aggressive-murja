@@ -46,7 +46,16 @@
 		   (:file "post-routes")
 		   (:file "media-routes")
 		   (:file "root-routes")))
-		 (:file "main")))))
+		 (:file "main"))))
+  :in-order-to ((test-op (test-op "pichunter/tests"))))
 
-
-		 
+(defsystem "aggressive-murja-tests"
+  :author  "Ilpo Lehtinen"
+  :licence "GPLv3"
+  :depends-on ("aggressive-murja"
+	       "fiveam")
+  :components ((:module "test"
+		:components
+		((:file "tests"))))
+  :perform (test-op (op c)
+		    (eval (read-from-string "(fiveam:run! 'murja.tests:main-suite)"))))
