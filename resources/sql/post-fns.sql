@@ -143,10 +143,10 @@ WHERE p.tags ? $1 AND (NOT p.tags ? 'hidden' OR (p.tags ? 'hidden' AND $2))
 GROUP BY p.ID, u.ID;
 
 -- name: insert-post
--- (:title, :content, :creator-id, :tags) ==
--- ($1, $2, $3, $4)
-insert into blog.post (title, content, creator_id, tags)
-values ($1, $2, $3, $4) returning id;
+-- (:title, :content, :creator-id, :tags, :hidden, :unlisted) ==
+-- ($1, $2, $3, $4, $5, §6)
+insert into blog.post (title, content, creator_id, tags, hidden, unlisted)
+values ($1, $2, $3, $4, $5, $6) returning id;
 
 -- name: update-post
 -- (:title, :content, :tags, :creator-id) ==
@@ -154,5 +154,12 @@ values ($1, $2, $3, $4) returning id;
 update blog.post
 set title = $1,
     content = $2,
-    tags = $3
-where id = $4;
+    tags = $3,
+    hidden = $4,
+    unlisted = $5
+where id = $6;
+
+-- name: set-hidden?
+update blog.post
+set hidden = $2 
+where id = $1;

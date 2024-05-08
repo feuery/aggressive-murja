@@ -71,26 +71,13 @@
 	     (not (string= tag "unlisted")))
     (stringify (murja.posts.post-db:get-tagged tag :allow-hidden? nil))))
 
-;; routes that write to the db
-(defroute post-creation-route ("/api/posts/post" :method :post
-						 :decorators (@json
-							      @transaction
-							      @authenticated
-							      (@can? "create-post"))) ()
-  (log:info "inserting post")
-  (let* ((request-body (parse (hunchentoot:raw-post-data :force-text t)))
-	 (content (gethash "content" request-body))
-	 (title (gethash "title" request-body))
-	 (tags (stringify
-		(or (remove-if (partial #'string= "")
-			       (coerce 
-				(gethash "tags" request-body) 'list))
-		    #())))
-
-	 (creator-id (gethash "id" *user*)))
-    (assert creator-id)
-    (murja.posts.post-db:insert-post title content creator-id tags)
-    ""))
+(defroute create-empty-post-route ("/api/posts/new_post" :method :post
+							 :decorators (@json
+								      @transaction
+								      @authenticated
+								      (@can? "create-post"))) ()
+  (let ((creator-id (gethash "id" *user*)))
+    (prin1-to-string (caar (murja.posts.post-db:insert-post "New title" "New post" creator-id "[]")))))
 
 (defroute post-update-route ("/api/posts/post" :method :put 
 					       :decorators (@json

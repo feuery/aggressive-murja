@@ -20,6 +20,7 @@
 (defmigration "013-media-table.up")
 (defmigration "014-tag-hidden-unlisted-validator.up")
 (defmigration "015-image-post-pairing-view.up")
+(defmigration "016-hardcoded-hidden-unlisted")
 
 (defun prepare-e2e-migration ()
   (postmodern:execute "DELETE FROM blog.Users")
@@ -28,9 +29,7 @@
 					 "Playwright-user"
 					 "playwrighte"
 					 ""
-					 (sha-512 "p4ssw0rd")))))
-    (postmodern:execute "insert into blog.groupmapping (userid, groupid, primarygroup) values ($1, $2, $3)"
-			user-id 1 t)))
+					 (sha-512 "p4ssw0rd")))))))
 
 (deflispmigration _ "e2e-migration"
   (declare (ignore _))

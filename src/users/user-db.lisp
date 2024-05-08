@@ -1,6 +1,7 @@
 (defpackage :murja.users.user-db
   (:use :cl :postmodern)
-  (:export :get-session-user-by-id :select-user-by-login)
+  (:import-from :lisp-fixup :sha-512)
+  (:export :get-session-user-by-id :select-user-by-login :register-user)
   (:import-from :halisql :defqueries))
 
 (in-package :murja.users.user-db)
@@ -32,5 +33,13 @@
 	  
 	  (log:warn "login failed with params ~a, ~a. Users in db: ~{~a~%~}" username password-sha usrs)
 	  nil))))
+
+(defun register-user (username nickname img-location password)
+  "Inserts the new user into db and returns its id" 
+  (caar (postmodern:query "INSERT INTO blog.Users (username, nickname, img_location, password) VALUES ($1, $2, $3, $4) returning id"
+			  username
+			  nickname
+			  img-location
+			  (sha-512 password))))
 
   ;;(postmodern:connect-toplevel "blogdb" "blogadmin" "blog" "localhost")
