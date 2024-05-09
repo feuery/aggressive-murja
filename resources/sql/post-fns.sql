@@ -17,7 +17,7 @@ SELECT p.Title AS "Title",
        p.id as "Id",
        p.Tags as "Tags"
 FROM blog.Post p
-WHERE $1 OR (NOT p.tags ? 'unlisted' AND NOT p.tags ? 'hidden')
+WHERE $1 OR (NOT p.unlisted AND NOT p.hidden)
 ORDER BY p.created_at DESC;
 
 -- name: get-by-id*
@@ -34,12 +34,12 @@ SELECT p.ID,
 			 u.Nickname,
 			 'img_location',
 			 u.Img_location) as "creator",
-       (SELECT MAX(version) + 1 FROM blog.Post_History phh WHERE (phh.id = p.id AND ((not phh.tags ? 'unlisted') OR $2) AND ((not phh.tags ? 'hidden') OR $2))) AS version,
+       (SELECT MAX(version) + 1 FROM blog.Post_History phh WHERE (phh.id = p.id AND ((not phh.unlisted) OR $2) AND ((not phh.hidden) OR $2))) AS version,
        json_agg(DISTINCT version) as "versions"
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
-LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND ((not ph.tags ? 'unlisted') OR $2) AND ((not ph.tags ? 'hidden') OR $2))
-WHERE p.ID = $1 AND (NOT p.tags ? 'hidden' OR (p.tags ? 'hidden' AND $2))
+LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND ((not ph.unlisted) OR $2) AND ((not ph.hidden) OR $2))
+WHERE p.ID = $1 AND (NOT p.hidden OR (p.hidden AND $2))
 GROUP BY p.ID, u.ID;
 
 -- name: get-versioned-by-id*
@@ -55,8 +55,8 @@ SELECT p.ID, p.Title, p.created_at, p.Content, p.tags, p.version, 0 AS "amount-o
      json_agg(DISTINCT ph.version) as "versions"
 FROM blog.Post_History p
 JOIN blog.Users u ON u.ID = p.creator_id
-LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND (not ph.tags ? 'unlisted') AND (not ph.tags ? 'hidden'))
-WHERE p.ID = $1 AND p.version = $2 AND not p.tags ? 'hidden'
+LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND (not ph.unlisted) AND (not ph.hidden))
+WHERE p.ID = $1 AND p.version = $2 AND not p.hidden
 GROUP BY p.ID, p.Title, p.created_at, p.Content, p.tags, p.version, "amount-of-comments", u.username, u.nickname, u.img_location;
 
 
@@ -65,7 +65,7 @@ SELECT p.id, p.Title, p.Content, p.created_at, p.tags, u.Username, u.Nickname, u
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
 LEFT JOIN blog.Comment c ON c.parent_post_id = p.ID
-WHERE NOT p.tags ? 'hidden'
+WHERE NOT p.hidden
 GROUP BY p.ID, u.ID
 ORDER BY p.created_at DESC
 -- this isn't going to work :)
@@ -82,9 +82,9 @@ SELECT p.ID, p.Title, p.Content, p.created_at, p.tags, COUNT(c.ID) AS "amount-of
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
 LEFT JOIN blog.Comment c ON c.parent_post_id = p.ID
-LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND ((not ph.tags ? 'unlisted') OR $3) AND ((not ph.tags ? 'hidden') OR $3))
-WHERE ((NOT p.tags ? 'unlisted') OR $3)
-  AND ((NOT p.tags ? 'hidden') OR $3)
+LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND ((not ph.unlisted) OR $3) AND ((not ph.hidden) OR $3))
+WHERE ((NOT p.unlisted) OR $3)
+  AND ((NOT p.hidden) OR $3)
 GROUP BY p.ID, u.ID
 ORDER BY p.created_at DESC
 LIMIT $2
@@ -93,7 +93,7 @@ OFFSET $1;
 -- name: landing-page-ids*
 SELECT id
 FROM blog.Post 
-WHERE tags ? 'landing-page' AND NOT tags ? 'hidden';
+WHERE tags ? 'landing-page' AND NOT hidden;
 
 -- name: get-posts-tags* 
 SELECT tags FROM blog.Post WHERE id = :post-id;
@@ -123,13 +123,13 @@ SELECT p.ID, p.Title, p.created_at, p.Content, p.tags, u.Username, u.Nickname, u
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
 LEFT JOIN blog.Comment c ON c.parent_post_id = p.ID
-WHERE p.tags ? 'landing-page' AND NOT p.tags ? 'hidden'
+WHERE p.tags ? 'landing-page' AND NOT p.hidden
 GROUP BY p.ID, u.ID;
 
 -- name: landing-page-title 
 SELECT p.Title, p.Id
 FROM blog.Post p
-WHERE p.tags ? 'landing-page' AND NOT p.tags ? 'hidden';
+WHERE p.tags ? 'landing-page' AND NOT p.hidden;
 
 
 -- name: get-tagged*
@@ -138,8 +138,8 @@ SELECT p.ID, p.Title, p.Content, p.created_at, p.tags, 0 AS "amount-of-comments"
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
 LEFT JOIN blog.Post_History ph ON ph.id = p.id 
-WHERE p.tags ? $1 AND (NOT p.tags ? 'hidden' OR (p.tags ? 'hidden' AND $2))
-      	     	      and ((NOT p.tags ? 'unlisted') OR $2)
+WHERE p.tags ? $1 AND (NOT p.hidden OR (p.hidden AND $2))
+      	     	      and ((NOT p.unlisted) OR $2)
 GROUP BY p.ID, u.ID;
 
 -- name: insert-post
