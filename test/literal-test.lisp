@@ -31,6 +31,10 @@
 
 				     into just the quotation-wrapped code)))))
 
+(def-test lists-do-not-error ()
+    (is (equalp `(progn (format t "lol~%") (literal code ))
+		(macroexpand `(literal Dumb documentation (with a parenthesis-wrapped block) that 666 returns this !L (format t "lol~%") code )))))
+
 
 (if (and (sb-ext:posix-getenv "GHA")
 	 (not (run! 'literal-suite)))

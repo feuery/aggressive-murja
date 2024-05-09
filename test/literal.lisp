@@ -16,7 +16,9 @@
  (progn
    (defun fac (n) (if (equalp n 1) 1 (* n (fac (1- n)))))
    (format t \"fac of 7 is ~d~%\" (fac 7)))"
-  (let ((body (rest (drop-while body (complement (partial #'string= '!L))))))
+  (let ((body (rest (drop-while body (lambda (x) (or (listp x)
+						     (numberp x)
+						     (not (string= x '!L))))))))
     (if body
 	`(progn
 	   ,(first body)

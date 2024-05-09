@@ -1,6 +1,7 @@
 (defpackage murja.tests
   (:use :cl :fiveam)
   (:import-from :murja.users.user-db :register-user)
+  (:import-from :murja.tests.literal :literal)
   (:export :main-suite))
 
 (in-package :murja.tests)
@@ -51,27 +52,42 @@
     (is (equalp successfully-migrated t))))
 	 
 (def-test history (:fixture prepare-db-and-server)
-  (let ((posts (coerce (postmodern:query "SELECT * FROM blog.Post") 'list)))
-    (is (not posts)))
+  (literal
+   We are interested in seeing if the hidden? and unlisted? flags move correctly thorugh Lisp -> blog.Post -> blog.Post_History.
 
-  (let* ((user-id (register-user "test-user" "Test User" "" "passu"))
-	 (post-id (caar (murja.posts.post-db:insert-post "Test title" "new post" user-id "[]" t t)))
-	 (history-data (coerce (postmodern:query "SELECT * FROM blog.Post_History") 'list)))
-    (is (not history-data))
-    (murja.posts.post-db:update-post "New title" "New Content" "[]" t t post-id)
-    (murja.posts.post-db:update-post "Newest title" "Newes Content" "[]" t t post-id)
-    (murja.posts.post-db:update-post "Newest title" "Newes Content" "['test-tag']" nil nil post-id)
+   First lets see if the blog.Post and blog.Post_History tables are empty and we are in a sane initial state.
 
-    (let ((post-data (postmodern:query "SELECT * FROM blog.Post" :array-hash))
-	  (history-data (coerce (postmodern:query "SELECT * FROM blog.Post_History" :array-hash) 'list))
-	  (count-of-hidden-history-entries 0))
+   !L 
+   (let ((posts (coerce (postmodern:query "SELECT * FROM blog.Post") 'list))
+	 
+	 (history-data (postmodern:query "SELECT * FROM blog.Post_History")))
+     (is (not posts))
+     (is (not history-data)))
 
-      (dolist (hist history-data)
-	(when (gethash "hidden" hist)
-	  (incf count-of-hidden-history-entries)))
+   if that passes we need a test-user that posts content (othis should maybe be moved to a fixture "...") Using this new users ID we can post a new post that is initially both hidden AND unlisted. 
 
-      (is (equalp 2
-		  count-of-hidden-history-entries)))))
+   !L
+   (let* ((user-id (register-user "test-user" "Test User" "" "passu"))
+	  (post-id (caar (murja.posts.post-db:insert-post "Test title" "new post" user-id "[]" t t))))
+
+     (literal
+      Updating the post moves the initial version into the history table (amount of hidden posts 1)
+      !L    
+      (murja.posts.post-db:update-post "New title" "New Content" "[]" t t post-id)
+
+      Now there is supposed to be 2 hidden posts 
+      !L 
+      (murja.posts.post-db:update-post "Newest title" "Newes Content" "[]" t t post-id)
+
+      Now there is supposed to be 3 hidden posts and the post in blog.Post is visible
+      
+      !L
+      (murja.posts.post-db:update-post "Newester title" "Newes Content" "[\"test-tag\"]" nil nil post-id)
+
+      !L
+      (let ((history-data (coerce (postmodern:query "SELECT * FROM blog.Post_History where hidden" :array-hash) 'list)))
+	(is (equalp 3
+		    (length history-data))))))))
 
 ;; (setf fiveam:*run-test-when-defined* t)
 
