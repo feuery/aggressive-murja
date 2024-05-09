@@ -56,6 +56,8 @@
 	       "fiveam")
   :components ((:module "test"
 		:components
-		((:file "tests"))))
+		((:file "literal")
+		 (:file "literal-test")
+		 (:file "tests"))))
   :perform (test-op (op c)
 		    (eval (read-from-string "(fiveam:run! 'murja.tests:main-suite)"))))
