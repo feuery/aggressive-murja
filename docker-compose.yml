@@ -28,6 +28,7 @@ services:
       - 3010:3010
     environment:
       MURJA_DB_HOST: db
+      MURJA_E2E: e2e
     networks:
       - murja_test_network
     depends_on:
