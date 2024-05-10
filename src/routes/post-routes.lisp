@@ -61,8 +61,13 @@
 (defroute unhidden-post ("/api/posts/post/:id" :method :get :decorators (@json
 									 @transaction)) ()
   (let* ((post (get-post id)))
-    (log:info "returning unhidden post { ~{~a~%~} }~%" (alexandria:hash-table-alist post))
-    (stringify post)))
+    (if post
+	(progn 
+	  (log:info "returning unhidden post { ~{~a~%~} }~%" (alexandria:hash-table-alist post))
+	  (stringify post))
+	(progn
+	  (setf (hunchentoot:return-code*) 404)
+	  ""))))
 
 (defroute tagged-posts-route ("/api/posts/tagged/:tag" :method :get
 						       :decorators (@json
@@ -77,7 +82,7 @@
 								      @authenticated
 								      (@can? "create-post"))) ()
   (let ((creator-id (gethash "id" *user*)))
-    (prin1-to-string (caar (murja.posts.post-db:insert-post "New title" "New post" creator-id "[]")))))
+    (prin1-to-string (caar (murja.posts.post-db:insert-post "New title" "New post" creator-id "[]" t nil)))))
 
 (defroute post-update-route ("/api/posts/post" :method :put 
 					       :decorators (@json
@@ -92,8 +97,10 @@
 			       (coerce 
 				(gethash "tags" request-body) 'list))
 		    #())))
-	 (post-id (gethash "id" request-body)))
+	 (post-id (gethash "id" request-body))
+	 (hidden (gethash "hidden" request-body))
+	 (unlisted (gethash "unlisted" request-body)))
     (log:info "updating post ~d" post-id)
 
-    (murja.posts.post-db:update-post title content tags post-id)
+    (murja.posts.post-db:update-post title content tags hidden unlisted post-id)
     ""))

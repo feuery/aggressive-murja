@@ -29,7 +29,9 @@
 					 "Playwright-user"
 					 "playwrighte"
 					 ""
-					 (sha-512 "p4ssw0rd")))))))
+					 (sha-512 "p4ssw0rd")))))
+    (postmodern:execute "INSERT INTO blog.GroupMapping(userid, groupid, primarygroup) VALUES ($1, (SELECT id FROM blog.UserGroup WHERE name = 'Users'), true)" user-id)
+    (postmodern:execute "INSERT INTO blog.GroupMapping(userid, groupid, primarygroup) VALUES ($1, (SELECT id FROM blog.UserGroup WHERE name = 'Admins'), true)" user-id)))
 
 (deflispmigration _ "e2e-migration"
   (declare (ignore _))
