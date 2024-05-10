@@ -6,6 +6,17 @@ html, body {
     flex: 1 1;	    
 }
 
+.editor-grouper {
+    
+}
+
+.editor-top {
+    flex: auto;
+    flex-direction: row;
+    display: flex;
+    justify-content: space-around;
+}
+
 .tagview {
     display: table;
 }

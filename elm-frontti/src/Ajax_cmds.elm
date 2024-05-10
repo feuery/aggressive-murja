@@ -112,3 +112,14 @@ loadPostVersion post_id_int version_id_int =
     Http.get
         { url = "/api/posts/post/" ++ post_id ++ "/version/" ++ version_id
         , expect = Http.expectJson GotOldPost Article.articleDecoder}
+
+generateNewPost =
+    Http.request
+        { method = "POST"
+        , headers = []
+        , url = "/api/posts/new_post"
+        , body = emptyBody
+        , expect = Http.expectJson NewPostGenerated Json.int
+        , timeout = Nothing
+        , tracker = Nothing
+        }

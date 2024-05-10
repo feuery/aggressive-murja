@@ -33,7 +33,7 @@ app.ports.addImgToAce.subscribe(img_id => {
 	editor.insert('<img src="/api/pictures/' + img_id +'" />');
 
     } else alert("Didn't find ace editor");
-})
+});
 
 Object.defineProperty(HTMLElement.prototype, "dangerouslySetInnerHTML", {
     get () {
@@ -41,22 +41,5 @@ Object.defineProperty(HTMLElement.prototype, "dangerouslySetInnerHTML", {
     },
     set (value) {
         this.innerHTML = value
-    }
-})
-
-app.ports.savePostToLocalStorage.subscribe( v => {
-    localStorage.setItem("post", v)
-});
-
-app.ports.loadPostFromLocalStorage.subscribe( () => {
-    const post = localStorage.getItem("post");
-    if (post) 
-	app.ports.fromLocalStorage.send(post);
-});
-
-app.ports.clearPostFromLS.subscribe( () => {
-    if (window.confirm("Are you sure to clear the editor?")) {
-	localStorage.removeItem("post");
-	location.reload();
     }
 });

@@ -119,8 +119,10 @@ type Msg
   | GotTaggedPosts  (Result Http.Error (List Article.Article))
   | ToggleArticlePreview
   | GotOldPost (Result Http.Error Article.Article)
-  | PostFromLocalStorage String
-  | ClearLocalStorage 
+  | GenNewPost 
+  | NewPostGenerated (Result Http.Error Int)
+  | ToggleArticleUnlisted
+  | ToggleArticleHidden
   
 
 

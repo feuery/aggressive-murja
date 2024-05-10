@@ -36,7 +36,7 @@ hijack msg =
 
 optionize tag = option [value tag] [text tag]
 
-tagView post selectedTag = div [class "tagview"]
+tagView post selectedTag = div [class "tagview editor-grouper"]
                            [ select [ multiple True
                                     , class "tag-select"
                                     , id "tag-select"
@@ -48,12 +48,6 @@ tagView post selectedTag = div [class "tagview"]
                            , murja_button [ onClick (DropTag selectedTag)
                                           , attribute "data-testid" "remove-tag"]
                                [text "Remove selected tag"]]
-
-third_column = div [class "tagview" ]
-               [ murja_button [ onClick ClearLocalStorage
-                              , attribute "data-testid" "clear-editor" ]
-                     [ text "Clear post in the editor" ] ]
-
 editor params =
     node "ace-editor"
     (  params
@@ -66,35 +60,46 @@ filesDecoder =
   D.at ["target","files"] (D.list File.decoder)
       
 postEditor post tag showImageModal loadedImages draggingImages editorSettings app_settings tz loginState
-    = [ div [ id "editor-buttons"]
-            [ input [ name "title"
-                    , id "editor-post-title"
-                    , value post.title
-                    , onInput ChangeTitle] []
-            , murja_button [ id "editor-post-save"
-                           , onClick (SavePost post) ] [text "Save version"]
-            , label [ for "file-pictures-input"
-                    , class "murja-button"] [ text "Add pictures from device"]
-            , input [ type_ "file"
-                    , multiple False
-                    , style "display" "none"
-                    , id "file-pictures-input"
-                    , on "change" (D.map GotInputFiles filesDecoder)] []
-            , murja_button [ id "image-insert-btn"
-                           , onClick GetListOfImages]
-                  [text "Insert image"]
-            , label [for "show-preview-cb"]
-                [text "Show article preview"]
-            , input [ type_ "checkbox"
-                    , id "show-preview-cb"
-                    , checked editorSettings.show_preview
-                    , onClick ToggleArticlePreview] []]
-            
-      , tagView post tag
-      , third_column
+    = [ div [ class "editor-top" ]
+            [ div [ id "editor-buttons"
+                  , class "editor-grouper"]
+                  [ input [ name "title"
+                          , id "editor-post-title"
+                          , value post.title
+                          , onInput ChangeTitle] []
+                  , murja_button [ id "editor-post-save"
+                                 , onClick (SavePost post) ] [text "Save version"]
+                  , label [ for "file-pictures-input"
+                          , class "murja-button"] [ text "Add pictures from device"]
+                  , input [ type_ "file"
+                          , multiple False
+                          , style "display" "none"
+                          , id "file-pictures-input"
+                          , on "change" (D.map GotInputFiles filesDecoder)] []
+                  , murja_button [ id "image-insert-btn"
+                                 , onClick GetListOfImages]
+                        [text "Insert image"]]
+            , tagView post tag
+            , div [ class "editor-grouper" ]
+                [ label [ for "hidden"]
+                      [ text "Hidden article"]
+                , input [ type_ "checkbox"
+                        , id "hidden"
+                        , checked post.hidden
+                        , onClick ToggleArticleHidden ] []
+                , label [ for "unlisted"]
+                    [ text "Unlisted article"]
+                , input [ type_ "checkbox"
+                        , id "unlisted"
+                        , checked post.unlisted
+                        , onClick ToggleArticleUnlisted] []
+                , label [for "show-preview-cb"]
+                    [text "Show article preview"]
+                , input [ type_ "checkbox"
+                        , id "show-preview-cb"
+                        , checked editorSettings.show_preview
+                        , onClick ToggleArticlePreview] []]]
       , if showImageModal then imageSelector loadedImages else div [] []
-      , div [ attribute "data-testid" "article-id" ] [ text ("Article: " ++ (Maybe.withDefault "No id" (Maybe.map String.fromInt post.id)))]
-
       , if editorSettings.show_preview then
             case loginState of
                 LoggedIn user ->

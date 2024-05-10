@@ -46,6 +46,8 @@ type alias Article =
     , versions: Maybe (List Int)
     , version : Maybe Int
     , created_at: Maybe Time.Posix
+    , hidden : Bool
+    , unlisted : Bool
     }
 
 -- encoder
@@ -62,6 +64,8 @@ encode article =
         , ( "id", (maybe int) article.id)
         , ( "version", (maybe int) article.version)
         , ( "created_at", (maybe iso8601) article.created_at)
+        , ( "hidden", bool article.hidden)
+        , ( "unlisted", bool article.unlisted)
         ]
 
 
@@ -77,7 +81,9 @@ idDecoder = Decode.maybe ( Decode.field "id" Decode.int)
 versionsDecoder = Decode.maybe (Decode.field "versions" (Decode.list Decode.int))
 versionDecoder = Decode.maybe (Decode.field "version" Decode.int)
 created_atDecoder = Decode.field "created_at" (Decode.maybe Extra.iso8601)
-creator_Decoder = Decode.field "creator" creatorDecoder                    
+creator_Decoder = Decode.field "creator" creatorDecoder
+hiddenDecoder = Decode.field "hidden" Decode.bool
+unlistedDecoder = Decode.field "unlisted" Decode.bool
 
 -- |> == clojure's ->>
 articleDecoder : Decoder Article                    
@@ -92,6 +98,8 @@ articleDecoder =
         |> decodeApply versionsDecoder
         |> decodeApply versionDecoder
         |> decodeApply created_atDecoder
+        |> decodeApply hiddenDecoder
+        |> decodeApply unlistedDecoder
 
 type alias Title =
     { title : String

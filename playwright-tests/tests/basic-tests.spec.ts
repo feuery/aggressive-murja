@@ -18,10 +18,8 @@ const password = 'p4ssw0rd';
 
 async function postPost(page, title, post, tag, append_img = false) {
     await page.getByTestId('new-post-btn').click();
-    await page.getByTestId('clear-editor').click();
 
     console.log(`Posting post with title ${title}, tag ${tag}`);
-    await expect(page.getByTestId('article-id')).toContainText('Article: No id');
     
     await page.locator('#editor-post-title').fill(title);
     
@@ -69,6 +67,9 @@ async function postPost(page, title, post, tag, append_img = false) {
 	});
 	await expect(page.locator('#editor-post-content')).toContainText('<img');
     }
+
+    
+    await page.locator("#hidden").setChecked(false);
 
     // save the post
 
@@ -119,13 +120,14 @@ test('basic testing', async ({ page, browser }) => {
     await expect(page.locator('.post')).toBeVisible();
     await expect(page.locator('.post')).toContainText(post);
     await expect(page.locator('.tag')).toHaveText(tag);
-    /*
+
     // edit the post
     for(let x = 0; x < 10; x++) {
-	console.log('x: ' + x);
-	await page.getByTestId('edit-post-btn').click();
-
-	await expect(page.getByTestId('article-id')).not.toContainText('Article: No id');
+	const hidden = x % 2 == 0;
+	await page.goto('http://localhost:3010/blog/postadmin');
+	await expect(page.getByTestId('manager-edit-post-btn')).toBeVisible();
+    
+	await page.getByTestId('manager-edit-post-btn').click();
 
 	await expect(page.locator('#editor-post-content')).toBeVisible();
 
@@ -135,24 +137,27 @@ test('basic testing', async ({ page, browser }) => {
 	    console.log('success');
 	});
 
+	await page.locator("#hidden").setChecked(hidden);
+
 	await page.locator('#editor-post-save').click();
 	await page.goto('http://localhost:3010');
 
-	await expect(page.locator('.post')).toContainText("edited article");
-	await expect(page.locator('.post')).not.toContainText(post);
+	if (hidden) {
+	    await expect(page.locator('.post')).toBeHidden()
+	} else {
+	    await expect(page.locator('.post')).toContainText("edited article");
+	    await expect(page.locator('.post')).not.toContainText(post);
+	}
     }
 
-    await expect(page.locator('.meta')).toContainText('1, 2, 3, 4, 5, 6, 7, 8, 9, 10');*/
+    await expect(page.locator('.meta')).toContainText('2, 4, 6, 8, 10');
 
     // hide the post
 
     await page.getByTestId('edit-post-btn').click();
     
     await expect(page.locator('#editor-post-content')).toBeVisible();
-
-    tag = 'hidden';
-    await page.locator('#new-tag-btn').click();
-    await page.locator('#tag-select').selectOption('hidden');
+    await page.locator("#hidden").setChecked(false);
     await page.locator('#editor-post-save').click();
     await page.goto('http://localhost:3010');
 
@@ -163,9 +168,7 @@ test('basic testing', async ({ page, browser }) => {
     await expect(page.getByTestId('manager-edit-post-btn')).toBeVisible();
     
     await page.getByTestId('manager-edit-post-btn').click();
-    await page.locator('#tag-select').selectOption('hidden');
-
-    await page.getByTestId('remove-tag').click();
+    await page.locator("#hidden").setChecked(false);
     await page.locator('#editor-post-title').fill('Latest test post');
     
     await page.locator('#editor-post-save').click();
@@ -184,12 +187,12 @@ test('basic testing', async ({ page, browser }) => {
 
     const new_ctx = await browser.newContext();
     // Create a new page inside context.
-    /* const anon_page = await new_ctx.newPage();
+    const anon_page = await new_ctx.newPage();
     await anon_page.goto('http://localhost:3010');
 
-    await expect(anon_page.locator('.meta')).toContainText('1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13'); 
-
-    await anon_page.close(); */
+    await expect(anon_page.locator('.meta')).toContainText('2, 4, 6, 8, 10, 12, 13, 14');
+    
+    await anon_page.close(); 
     // make sure editor saves 
     await page.getByText('Edit this post').click();
 
@@ -213,7 +216,7 @@ test('basic testing', async ({ page, browser }) => {
     // make sure the basic post view opens
     await page.getByRole('link', { name: 'really badly edited test post' }).click();
     // await expect(page.getByText('LOADING')).toBeHidden();
-    await expect(page.getByText('jeejee')).toBeVisible();
+    await expect(page.getByText('jeejee')).toBeVisible(); 
     await expect(page.getByText('random content')).toBeHidden();
 
     // test images

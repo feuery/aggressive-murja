@@ -7,7 +7,6 @@ import String exposing (fromInt)
 type Route
     = Page Int
     | Post Int
-    | NewPost 
     | PostAdmin
     | MediaManager
     | PostEditor Int
@@ -25,7 +24,6 @@ routeParser =
         , map Post (s "blog" </> (s "post" </> int))
         , map PostEditor (s "blog" </> (s "post" </> (s "edit" </> int)))
         , map MediaManager (s "blog" </> (s "mediamanager"))
-        , map NewPost (s "blog" </> (s "new_post"))
         , map TaggedPosts (s "blog" </> (s "tags" </> string))
         , map PostAdmin (s "blog" </> (s "postadmin"))]
 
