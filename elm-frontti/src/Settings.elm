@@ -19,14 +19,11 @@ type alias Settings =
     , blog_title : String
     , recent_post_count : Int
     , xss_filter_posts : Bool
-
-    , titles : Maybe (List Article.Title)     --for reasons fucking unknown, growing Main.Model beoynd 2 fields breaks everything. 
     }
 
-settingsDecoder = Decode.map5 Settings
+settingsDecoder = Decode.map4 Settings
                   (Decode.field "time-format" Decode.string)
                   (Decode.field "blog-title" Decode.string)
                   (Decode.field "recent-post-count" Decode.int)
                   (Decode.field "xss-filter-posts?" Decode.bool)
-                  (Decode.maybe (Decode.list (Decode.field "does-not-exist" Article.sidebarTitleDecoder)))
                      

@@ -64,7 +64,7 @@ subscriptions _ = Sub.batch
                   [ tags ReceivedTag
                   , aceStateUpdate AceStateUpdate]
 
-initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc Nothing
+initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc Nothing []
     
 viewStatePerUrl : Url.Url -> (ViewState, List (Cmd Msg))
 viewStatePerUrl url =
@@ -157,7 +157,7 @@ update msg model =
         TitlesReceived result ->
             case result of
                 Ok decoded_titles ->
-                    ({ model | settings = Maybe.map (\s -> {s | titles = Just decoded_titles}) model.settings}
+                    ({ model | titles = decoded_titles}
                     ,  Cmd.none)
                 Err error ->
                     ( model
@@ -519,11 +519,7 @@ view model =
                                                    Nothing -> [ div [] [ text "No post loaded" ]]
                                            MediaList -> [ medialist model.loadedImages model.medialist_state ])
                         , div [id "sidebar"] [ User.loginView model.loginState
-                                             , (case settings.titles of
-                                                    Just titles ->
-                                                        sidebarHistory titles 
-                                                    Nothing ->
-                                                        div [] [text "Loading history failed"])
+                                             , (sidebarHistory model.titles )
                                              , (case model.view_state of
                                                     PostEditorList titles -> PostsAdmin.tagList titles
                                                     

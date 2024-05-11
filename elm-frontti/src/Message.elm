@@ -71,7 +71,9 @@ type alias Model =
     , url : Url.Url
     , postEditorSettings: Maybe PostEditorSettings
     , zone : Time.Zone
-    , postFromLocalStorage : Maybe Article.Article}
+    , postFromLocalStorage : Maybe Article.Article
+    , titles : List Article.Title
+    }
     
 type Msg
   = PageReceived (Result Http.Error P.Page)
