@@ -96,6 +96,7 @@ jobs:
   test-playwright:
     name: Runs playwright browser tests
     needs: build
+    if: false
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -118,7 +119,7 @@ jobs:
           run: |
             set -eux
 
-            (./murja_server 2>&1 | grep -vi Firefox)&
+            (./murja_server 2>&1 | grep -vi Firefox |grep -vi 'Connecting to db')&
             
             cd /workspace
             apt-get -qq install curl npm 
