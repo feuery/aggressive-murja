@@ -269,10 +269,9 @@ update msg model =
         HttpIgnoreResponse result ->
             (model, Cmd.none)
         SavePost article ->
-            let new_post_p = article.id == Nothing in
             doGoHome_
               { model | postEditorSettings = Nothing}
-              [ if new_post_p then postArticle article else putArticle article ]
+              [ putArticle article ]
                     
 
         GoHome -> doGoHome model

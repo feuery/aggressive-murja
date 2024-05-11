@@ -42,7 +42,7 @@ type alias Article =
     , comments : Maybe (List String)
     -- , amount_of_comments : Int
     , title : String
-    , id : Maybe Int
+    , id : Int
     , versions: Maybe (List Int)
     , version : Maybe Int
     , created_at: Maybe Time.Posix
@@ -61,7 +61,7 @@ encode article =
                                          Just comments -> comments
                                          Nothing -> [])))
         , ( "title", string article.title)
-        , ( "id", (maybe int) article.id)
+        , ( "id", int article.id)
         , ( "version", (maybe int) article.version)
         , ( "created_at", (maybe iso8601) article.created_at)
         , ( "hidden", bool article.hidden)
@@ -77,7 +77,7 @@ contentDecoder = Decode.field "content" Decode.string
 commentsDecoder = Decode.maybe (Decode.field "comments" (Decode.list Decode.string))
 -- amount_of_commentsDecoder = Decode.field "amount-of-comments" Decode.int                  
 titleDecoder = Decode.field "title" Decode.string
-idDecoder = Decode.maybe ( Decode.field "id" Decode.int)
+idDecoder = Decode.field "id" Decode.int
 versionsDecoder = Decode.maybe (Decode.field "versions" (Decode.list Decode.int))
 versionDecoder = Decode.maybe (Decode.field "version" Decode.int)
 created_atDecoder = Decode.field "created_at" (Decode.maybe Extra.iso8601)
