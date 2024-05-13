@@ -18,6 +18,7 @@ import User
 import Topbar
 import PostsAdmin
 import PostEditor
+import SettingsEditor
 import Medialist exposing (medialist)
 import Image
 import ImageSelector exposing (imageSelector)
@@ -64,7 +65,7 @@ subscriptions _ = Sub.batch
                   [ tags ReceivedTag
                   , aceStateUpdate AceStateUpdate]
 
-initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc Nothing []
+initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc []
     
 viewStatePerUrl : Url.Url -> (ViewState, List (Cmd Msg))
 viewStatePerUrl url =
@@ -106,6 +107,9 @@ viewStatePerUrl url =
                                                                 , loadPostVersion post_id version_id])
                                                                       
         RouteParser.NotFound -> (ShowError ("Couldn't parse url " ++ (Url.toString url)), [Cmd.none])
+        RouteParser.SettingsEditor -> (Loading, [ getSession
+                                                , getSettingsAdmin 
+                                                , getTitles])
     
 init _ url key =
     let (viewstate, cmds) = (viewStatePerUrl url)
@@ -429,6 +433,53 @@ update msg model =
                                                            {settings | article = toggleUnlisted settings.article})
                    model.postEditorSettings}
             , Cmd.none)
+        AdminSettingsReceived result -> 
+            case result of
+                Ok new_settings ->
+                    ({model
+                         | settings = Just new_settings
+                         , view_state = SettingsEditor}, Cmd.none)
+                        
+                Err http_error ->
+                    ( model
+                    , alert ("Error loading settings " ++ Debug.toString http_error))
+        SetTimeFormat tf ->
+            ({ model | settings = Maybe.map (\settings ->
+                                                 { settings | time_format = tf})
+                   model.settings}
+            , Cmd.none)
+        SetBlogTitle title ->
+            ({ model | settings = Maybe.map (\settings ->
+                                                 { settings | blog_title = title})
+                   model.settings}
+            , Cmd.none)
+        SetPageSize pg_size ->
+            case String.toInt pg_size of
+                Just page_size -> 
+                    ({ model | settings = Maybe.map (\settings ->
+                                                         { settings | recent_post_count = page_size})
+                           model.settings}
+                    , Cmd.none)
+                Nothing ->
+                    ( model
+                    , alert "Page size should be a number")
+        SaveSettings ->
+            case model.settings of
+                Just settings -> 
+                    ( model
+                    , saveSettings settings)
+                Nothing ->
+                    ( model
+                    , Cmd.none)
+        SettingsSaved result ->
+            case result of
+                Ok _ ->
+                    ( model
+                    , Cmd.none)
+                        
+                Err http_error ->
+                    ( model
+                    , alert ("Error saving settings " ++ Debug.toString http_error))    
             
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings
@@ -517,7 +568,8 @@ view model =
                                                            tag_index = editorSettings.selected_tag in
                                                        PostEditor.postEditor post tag_index model.showImageModal model.loadedImages model.draggingImages editorSettings settings model.zone model.loginState
                                                    Nothing -> [ div [] [ text "No post loaded" ]]
-                                           MediaList -> [ medialist model.loadedImages model.medialist_state ])
+                                           MediaList -> [ medialist model.loadedImages model.medialist_state ]
+                                           SettingsEditor -> [ SettingsEditor.editor settings])
                         , div [id "sidebar"] [ User.loginView model.loginState
                                              , (sidebarHistory model.titles )
                                              , (case model.view_state of

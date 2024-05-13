@@ -249,6 +249,22 @@ header {
     display: block;
 }
 
+.form-grid
+{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    height: fit-content;
+}
+
+.form-grid label {
+    grid-column: 1;
+}  
+
+.form-grid input {
+    grid-column: 2;
+}
+
 
 @media only screen and (max-device-width:480px)
 {

@@ -12,6 +12,7 @@ type Route
     | PostEditor Int
     | TaggedPosts String
     | PostVersion Int Int
+    | SettingsEditor 
     | Home
     | NotFound
 
@@ -24,6 +25,7 @@ routeParser =
         , map Post (s "blog" </> (s "post" </> int))
         , map PostEditor (s "blog" </> (s "post" </> (s "edit" </> int)))
         , map MediaManager (s "blog" </> (s "mediamanager"))
+        , map SettingsEditor (s "blog" </> (s "settings"))
         , map TaggedPosts (s "blog" </> (s "tags" </> string))
         , map PostAdmin (s "blog" </> (s "postadmin"))]
 

@@ -28,6 +28,7 @@ type ViewState
     | PostEditor
     | MediaList                     -- list all the image blobs in db
     | TaggedPostsView (List Article.Article)
+    | SettingsEditor
       
 type alias User =
     { username : String
@@ -71,9 +72,7 @@ type alias Model =
     , url : Url.Url
     , postEditorSettings: Maybe PostEditorSettings
     , zone : Time.Zone
-    , postFromLocalStorage : Maybe Article.Article
-    , titles : List Article.Title
-    }
+    , titles : List Article.Title }
     
 type Msg
   = PageReceived (Result Http.Error P.Page)
@@ -125,14 +124,16 @@ type Msg
   | NewPostGenerated (Result Http.Error Int)
   | ToggleArticleUnlisted
   | ToggleArticleHidden
-  
-
+  | AdminSettingsReceived (Result Http.Error Settings.Settings)
+  | SetTimeFormat String
+  | SetBlogTitle String
+  | SetPageSize String
+  | SaveSettings
+  | SettingsSaved (Result Http.Error ())
 
 -- ports
 port reallySetupAce : String -> Cmd msg
 port addImgToAce : String -> Cmd msg
-port clearPostFromLS : () -> Cmd msg                   
-
 
 -- dumb shit that would deserve its own module
 dangerouslySetInnerHTML: String -> Html.Attribute msg

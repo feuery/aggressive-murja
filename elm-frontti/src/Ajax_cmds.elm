@@ -32,11 +32,15 @@ getPost post_id =
         { url = "/api/posts/post/" ++ (String.fromInt post_id)
         , expect = Http.expectJson PostReceived Article.articleDecoder}
 
-getSettings : Cmd Msg
 getSettings =
     Http.get
         { url = "/api/settings/client-settings"
         , expect = Http.expectJson SettingsReceived Settings.settingsDecoder}
+
+getSettingsAdmin =
+    Http.get
+        { url = "/api/settings/client-settings"
+        , expect = Http.expectJson AdminSettingsReceived Settings.settingsDecoder}        
 
 getTitles =
     Http.get
@@ -113,3 +117,13 @@ generateNewPost =
         , timeout = Nothing
         , tracker = Nothing
         }
+        
+saveSettings settings =
+    Http.request
+        { method = "PUT"
+        , headers = []
+        , url = "/api/settings/client-settings"
+        , body = Http.jsonBody (Settings.encodeSettings settings)
+        , expect = Http.expectWhatever SettingsSaved
+        , timeout = Nothing
+        , tracker = Nothing}

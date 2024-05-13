@@ -50,10 +50,6 @@
 	  ((string= type "css") "text/css")
 	  (t (error 'unknown-mime :file-type type)))))
 
-(defroute client-settings ("/api/settings/client-settings" :method :get
-							   :decorators (@json)) ()
-  "{\"time-format\":\"dd.MM.yyyy HH:mm\",\"blog-title\":\"Murja.dev @ $HOSTNAME\",\"recent-post-count\":6,\"xss-filter-posts?\":false}")
-
 (defun get-resource (file)
   (let ((path (gethash file *allowed-resources*)))
     (if path
@@ -114,4 +110,7 @@
   *root*)
 
 (defroute sdkfpsokopfs ("/blog/post/:post/version/:ver" :method :get) ()
+  *root*)
+
+(defroute ddddddd ("/blog/settings" :method :get) ()
   *root*)

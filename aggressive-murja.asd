@@ -42,7 +42,8 @@
 
 		 (:module "routes"
 		  :components
-		  ((:file "login-routes")
+		  ((:file "settings-routes")
+		   (:file "login-routes")
 		   (:file "post-routes")
 		   (:file "media-routes")
 		   (:file "root-routes")))

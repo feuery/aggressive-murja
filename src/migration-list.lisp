@@ -21,6 +21,7 @@
 (defmigration "014-tag-hidden-unlisted-validator.up")
 (defmigration "015-image-post-pairing-view.up")
 (defmigration "016-hardcoded-hidden-unlisted")
+(defmigration "017-settings-in-db")
 
 (defun prepare-e2e-migration ()
   (postmodern:execute "DELETE FROM blog.Users")
