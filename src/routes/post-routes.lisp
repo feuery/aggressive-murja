@@ -17,7 +17,8 @@
     (stringify titles)))
 
 (defroute manager-title-routes ("/api/posts/all-titles" :method :get
-							:decorators (@json @transaction)) ()
+							:decorators (@json @transaction @authenticated (@can? "edit-post"))) ()
+  
   (let ((titles (get-titles-by-year :allow-hidden? t)))
     (stringify titles)))    
 

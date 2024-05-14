@@ -139,7 +139,7 @@ errToString err =
         Http.BadUrl str -> "Bad url: " ++ str
         Http.Timeout -> "Timeout trying to contact the server. Are you online?"
         Http.NetworkError -> "Network error. Are you online?"
-        Http.BadStatus status -> ("Received unexpected status " ++ (String.fromInt status) ++ " from backend")
+        Http.BadStatus status -> String.fromInt status
         Http.BadBody body -> "Received unparseable response: " ++ body
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -154,11 +154,10 @@ update msg model =
                     ( model
                     , alert ("Error loading settings " ++ Debug.toString http_error))
         PostReceived result ->
-            case result of
-                Ok post -> ( {model | view_state = PostView post}
-                           , Cmd.none)
-                Err error -> ( model
-                             , alert ("Error loading post " ++ Debug.toString error))
+            ( {model | view_state = case result of
+                                        Ok post -> PostView post 
+                                        Err error -> ShowError ( errToString error)}
+            , Cmd.none)
         PageReceived result ->
             ( {model | view_state = case result of
                                         Ok page -> PageView page
@@ -227,13 +226,10 @@ update msg model =
                         _ -> ( model
                              , alert ("Error when loading session"))
         EditableTitlesReceived result ->
-            case result of
-                Ok titles ->
-                    ({model | view_state = PostEditorList titles}
-                    , Cmd.none)
-                Err error ->
-                    ( model
-                    , alert ("Coudln't load titles " ++ Debug.toString error))
+            ( {model | view_state = case result of
+                                        Ok titles -> PostEditorList titles 
+                                        Err error -> ShowError ( errToString error)}
+            , Cmd.none)
         OpenPostEditor post_id ->
             (model, getPostEditorData post_id)
         EditorPostReceived result ->
@@ -495,14 +491,7 @@ doGoHome_ model other_cmds =
                                    , Nav.pushUrl model.key "/blog/"]
                            other_cmds))
 
-doGoHome model = doGoHome_ model []        
-                           
-                
-getContentCmd viewState =
-    case viewState of
-        PostEditorList _ -> getEditablePosts
-        _ -> Cmd.none
-                        
+doGoHome model = doGoHome_ model []
 
 -- VIEW
 
