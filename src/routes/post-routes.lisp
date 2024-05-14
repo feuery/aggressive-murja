@@ -26,7 +26,7 @@
     (&path (page 'integer)
 	   &path (page-size 'integer))
   (let* ((page (1- page))
-	 (posts (murja.posts.post-db:get-page page page-size))
+	 (posts (or (murja.posts.post-db:get-page page page-size) #()))
 	 (id page)
 	 (last-page? (zerop (length (murja.posts.post-db:get-page (1+ page) page-size))))
 	 (result (make-hash-table)))

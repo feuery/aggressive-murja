@@ -131,7 +131,16 @@ port aceStateUpdate : (String -> msg) -> Sub msg
 toggleHidden article =
     { article | hidden = not article.hidden}
 toggleUnlisted article =
-    { article | unlisted = not article.unlisted}                      
+    { article | unlisted = not article.unlisted}
+
+errToString: Http.Error -> String 
+errToString err =
+    case err of
+        Http.BadUrl str -> "Bad url: " ++ str
+        Http.Timeout -> "Timeout trying to contact the server. Are you online?"
+        Http.NetworkError -> "Network error. Are you online?"
+        Http.BadStatus status -> ("Received unexpected status " ++ (String.fromInt status) ++ " from backend")
+        Http.BadBody body -> "Received unparseable response: " ++ body
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -151,13 +160,10 @@ update msg model =
                 Err error -> ( model
                              , alert ("Error loading post " ++ Debug.toString error))
         PageReceived result ->
-            case result of
-                Ok page -> 
-                    ( {model | view_state = PageView page}
-                    , Cmd.none)
-                Err error ->
-                    ( model
-                    , alert ("Error loading page " ++ Debug.toString error))
+            ( {model | view_state = case result of
+                                        Ok page -> PageView page
+                                        Err error -> ShowError ( errToString error)}
+            , Cmd.none)
         TitlesReceived result ->
             case result of
                 Ok decoded_titles ->
@@ -552,8 +558,12 @@ view model =
                                            PostView article ->
                                                [ articleView settings model.loginState model.zone article ]
                                            PageView page ->
-                                               (List.concat [(List.map (articleView settings model.loginState model.zone) page.posts),
-                                                                 [footer [(attribute "data-testid" "page-changer")] (if page.id > 1 then [ a [href ("/blog/page/" ++ fromInt (page.id + 1))] [text "Older posts"]
+                                               let post_elements = (List.map (articleView settings model.loginState model.zone) page.posts) in
+                                               (List.concat [ (if post_elements /= [] then
+                                                                   post_elements
+                                                               else
+                                                                   [ div [class "post"] [ text "There are no posts in this instance"]])
+                                                            , [footer [(attribute "data-testid" "page-changer")] (if page.id > 1 then [ a [href ("/blog/page/" ++ fromInt (page.id + 1))] [text "Older posts"]
                                                                                                  , a [href ("/blog/page/" ++ fromInt (page.id - 1)), class "newer-post"] [text "Newer posts"]]
                                                                              else [a [href ("/blog/page/" ++ fromInt (page.id + 1))] [text "Next page"]])]])
                                            ShowError err ->
