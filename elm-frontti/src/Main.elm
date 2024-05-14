@@ -319,8 +319,8 @@ update msg model =
                         False -> 
                             ({model | showImageModal = True, loadedImages = images}, Cmd.none)
                 Err error ->
-                    ( model
-                    , alert (Debug.toString error))
+                    ( { model | view_state = ShowError (errToString error) }
+                    , Cmd.none)
         SelectedImage img_id ->
             ( {model | showImageModal = False, loadedImages = [] }
             , addImgToAce (UUID.toString img_id))
