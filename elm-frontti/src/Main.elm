@@ -65,7 +65,7 @@ subscriptions _ = Sub.batch
                   [ tags ReceivedTag
                   , aceStateUpdate AceStateUpdate]
 
-initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc []
+initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc [] []
     
 viewStatePerUrl : Url.Url -> (ViewState, List (Cmd Msg))
 viewStatePerUrl url =
@@ -125,6 +125,8 @@ init _ url key =
 -- PORTS --
 port prompt : String -> Cmd msg
 port alert : String -> Cmd msg
+port showPreviousPostsModal: (() -> Cmd msg)
+port closePreviousPostsModal: (() -> Cmd msg)
 port tags : (String -> msg) -> Sub msg
 port aceStateUpdate : (String -> msg) -> Sub msg
 
@@ -481,7 +483,66 @@ update msg model =
                         
                 Err http_error ->
                     ( model
-                    , alert ("Error saving settings " ++ Debug.toString http_error))    
+                    , alert ("Error saving settings " ++ Debug.toString http_error))
+        ShowPreviousPostsModal ->
+            ( model
+            , showPreviousPostsModal ())
+        ClosePreviousPostsModel ->
+            ( model
+            , closePreviousPostsModal ())
+        PreviouslySearchInput search_term ->
+            ( model
+            , searchPreviouslyPosts search_term)
+        PreviouslySearchResult result ->
+            case result of
+                Ok previously_posts ->
+                    let article_previouslies = case model.postEditorSettings of
+                                                    Just settings -> settings.article.previously
+                                                    Nothing -> []
+                    in
+                    ({ model |
+                           searchedPosts = List.filter (\p -> not (List.member p article_previouslies)) previously_posts}
+                    , Cmd.none)
+                Err error ->
+                    ( model
+                    , alert (errToString error))
+        SelectPreviouslyPost selectedPost  ->
+            case model.postEditorSettings of
+                Just editorSettings -> 
+                    let new_posts = List.filter ((/=) selectedPost) model.searchedPosts
+                        article = editorSettings.article
+                        previously = article.previously
+                    in
+                        ({ model
+                             | searchedPosts = new_posts
+                             , postEditorSettings = Just { editorSettings
+                                                             | article = { article
+                                                                             | previously = selectedPost :: previously}}}
+                        , Cmd.none)
+                Nothing ->
+                    ( model
+                    , Cmd.none)
+        DropPreviously previous_post ->
+            case model.postEditorSettings of
+                Just editorSettings -> 
+                    let article = editorSettings.article
+                        previously = article.previously
+                    in
+                        ({ model
+                             | postEditorSettings = Just
+                               { editorSettings
+                                     | article =
+                                     { article
+                                           | previously = List.filter ((/=) previous_post) previously}}}
+                        , Cmd.none)
+                Nothing ->
+                    ( model
+                    , Cmd.none)
+        SetPreviouslyLabel label ->
+            ({ model | settings = Maybe.map (\settings ->
+                                                 { settings | previously_label = label})
+                   model.settings}
+            , Cmd.none)                       
             
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings
@@ -565,7 +626,7 @@ view model =
                                                    Just editorSettings ->
                                                        let post = editorSettings.article
                                                            tag_index = editorSettings.selected_tag in
-                                                       PostEditor.postEditor post tag_index model.showImageModal model.loadedImages model.draggingImages editorSettings settings model.zone model.loginState
+                                                       PostEditor.postEditor post tag_index model.showImageModal model.loadedImages model.draggingImages editorSettings settings model.zone model.loginState model.searchedPosts
                                                    Nothing -> [ div [] [ text "No post loaded" ]]
                                            MediaList -> [ medialist model.loadedImages model.medialist_state ]
                                            SettingsEditor -> [ SettingsEditor.editor settings])

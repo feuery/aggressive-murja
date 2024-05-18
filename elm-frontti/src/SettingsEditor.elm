@@ -28,5 +28,11 @@ editor settings =
                 , value (String.fromInt settings.recent_post_count)
                 , type_ "number"] []
 
+        , label [ for "previously_label" ]
+            [ text "Previously link label" ]
+        , input [ id "previously"
+                , onInput SetPreviouslyLabel
+                , value settings.previously_label] []            
+
         , button [ onClick SaveSettings ]
             [ text "Save settings"]]

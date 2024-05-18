@@ -22,6 +22,7 @@
 (defmigration "015-image-post-pairing-view.up")
 (defmigration "016-hardcoded-hidden-unlisted")
 (defmigration "017-settings-in-db")
+(defmigration "018-previously")
 
 (defun prepare-e2e-migration ()
   (postmodern:execute "DELETE FROM blog.Users")

@@ -43,3 +43,12 @@ Object.defineProperty(HTMLElement.prototype, "dangerouslySetInnerHTML", {
         this.innerHTML = value
     }
 });
+
+app.ports.showPreviousPostsModal.subscribe(_ => {
+    document.getElementById('previouslyModal').showModal();
+});
+
+
+app.ports.closePreviousPostsModal.subscribe(_ => {
+    document.getElementById('previouslyModal').close();
+});

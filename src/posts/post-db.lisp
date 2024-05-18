@@ -3,7 +3,7 @@
   (:import-from :com.inuoe.jzon :parse)
   (:import-from :halisql :defqueries)
   (:import-from :lisp-fixup :fix-timestamp)
-  (:export :get-tagged :get-post-version :get-page :get-titles-by-year :insert-post :update-post :get-post))
+  (:export :search-posts :link-previously :get-tagged :get-post-version :get-page :get-titles-by-year :insert-post :update-post :get-post))
 
 (in-package :murja.posts.post-db)
 
@@ -20,10 +20,15 @@
 	   (get-titles-by-year* allow-hidden?) 'list)))
 
 (defun fix-post (post)
-  (dolist (key (list "creator" "tags" "versions"))
+  (dolist (key (list "creator" "tags" "versions" "previously"))
     (when (gethash key post)
       (setf (gethash key post)
 	    (parse (gethash key post)))))
+
+  (setf (gethash "previously" post)
+	(or 
+	 (remove-if-not #'hash-table-p (coerce (gethash "previously" post) 'list))
+	 #()))
 
   (setf (gethash "created_at" post)
 	(fix-timestamp (gethash "created_at" post)))
@@ -51,4 +56,4 @@
     (log:info "Tag ~a returns posts ~a~%" tag (mapcar #'alexandria:hash-table-alist posts))
     (when posts
       (mapcar #'fix-post
-	      posts)))) 
+	      posts))))

@@ -24,7 +24,9 @@ import Time
 --   "id": 1,
 --   "versions": [],
 --   "version": null,
---   "created_at": "2020-10-16T07:52:59Z"
+--   "created_at": "2020-10-16T07:52:59Z",
+--   "previosly": [{"id": 666,
+--                  "title": "Titteli"}]
 -- }
 
 import Creator exposing (Creator, creatorDecoder)
@@ -33,6 +35,9 @@ decodeApply : Decode.Decoder a -> Decode.Decoder (a -> b) -> Decode.Decoder b
 decodeApply value partial =
     Decode.andThen (\p -> Decode.map p value) partial
 
+type alias PreviousArticle =
+    { id: Int
+    , title: String}
 
 type alias Article =
     { creator : Creator
@@ -48,9 +53,16 @@ type alias Article =
     , created_at: Maybe Time.Posix
     , hidden : Bool
     , unlisted : Bool
+    , previously: List PreviousArticle
     }
 
 -- encoder
+
+encodePreviously prev =
+    object
+      [ ( "id", int prev.id)
+      , ( "title", string prev.title)]
+
 encode : Article -> Json.Value
 encode article =
     object
@@ -66,6 +78,7 @@ encode article =
         , ( "created_at", (maybe iso8601) article.created_at)
         , ( "hidden", bool article.hidden)
         , ( "unlisted", bool article.unlisted)
+        , ( "previously", list encodePreviously article.previously)
         ]
 
 
@@ -85,6 +98,13 @@ creator_Decoder = Decode.field "creator" creatorDecoder
 hiddenDecoder = Decode.field "hidden" Decode.bool
 unlistedDecoder = Decode.field "unlisted" Decode.bool
 
+previouslyDocDecoder =
+    Decode.succeed PreviousArticle
+        |> decodeApply idDecoder
+        |> decodeApply titleDecoder
+
+previouslyDecoder = Decode.field "previously" (Decode.list previouslyDocDecoder)
+
 -- |> == clojure's ->>
 articleDecoder : Decoder Article                    
 articleDecoder =
@@ -100,6 +120,7 @@ articleDecoder =
         |> decodeApply created_atDecoder
         |> decodeApply hiddenDecoder
         |> decodeApply unlistedDecoder
+        |> decodeApply previouslyDecoder
 
 type alias Title =
     { title : String

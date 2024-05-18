@@ -58,8 +58,25 @@ editor params =
 filesDecoder : D.Decoder (List File)
 filesDecoder =
   D.at ["target","files"] (D.list File.decoder)
+
+previouslyButtons post loadedPosts =
+    div [ class "previously-buttons" ]
+        [ murja_button [ onClick ShowPreviousPostsModal ] [ text "Link previous posts"]
+        , ul []
+            ( post.previously
+            |> List.map (\p -> li [] [ text p.title, button [ onClick (DropPreviously p)] [ text "X"]]))
+        , node "dialog" [ id "previouslyModal" ]
+            [ div [ class "dialog" ]
+                  [ header [ class "previouslyHeader" ] [ button [ onClick ClosePreviousPostsModel ] [ text "X"]]
+                  , select [ multiple True
+                           , class "previouslyPostResult"]
+                      (List.map (\prev_post ->
+                                     option [ onClick (SelectPreviouslyPost prev_post) ] [ text prev_post.title ]) loadedPosts)
+                  , input [ type_ "text"
+                          , placeholder "Search for posts"
+                          , onInput PreviouslySearchInput] []]]]
       
-postEditor post tag showImageModal loadedImages draggingImages editorSettings app_settings tz loginState
+postEditor post tag showImageModal loadedImages draggingImages editorSettings app_settings tz loginState searchedPosts
     = [ div [ class "editor-top" ]
             [ div [ id "editor-buttons"
                   , class "editor-grouper"]
@@ -80,6 +97,7 @@ postEditor post tag showImageModal loadedImages draggingImages editorSettings ap
                                  , onClick GetListOfImages]
                         [text "Insert image"]]
             , tagView post tag
+            , previouslyButtons post searchedPosts
             , div [ class "editor-grouper" ]
                 [ label [ for "hidden"]
                       [ text "Hidden article"]

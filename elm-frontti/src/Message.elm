@@ -72,7 +72,8 @@ type alias Model =
     , url : Url.Url
     , postEditorSettings: Maybe PostEditorSettings
     , zone : Time.Zone
-    , titles : List Article.Title }
+    , titles : List Article.Title
+    , searchedPosts : List Article.PreviousArticle}
     
 type Msg
   = PageReceived (Result Http.Error P.Page)
@@ -130,6 +131,13 @@ type Msg
   | SetPageSize String
   | SaveSettings
   | SettingsSaved (Result Http.Error ())
+  | ShowPreviousPostsModal
+  | ClosePreviousPostsModel
+  | PreviouslySearchInput String
+  | PreviouslySearchResult (Result Http.Error (List Article.PreviousArticle))
+  | SelectPreviouslyPost Article.PreviousArticle
+  | DropPreviously Article.PreviousArticle
+  | SetPreviouslyLabel String
 
 -- ports
 port reallySetupAce : String -> Cmd msg

@@ -35,9 +35,11 @@ SELECT p.ID,
 			 'img_location',
 			 u.Img_location) as "creator",
        (SELECT MAX(version) + 1 FROM blog.Post_History phh WHERE (phh.id = p.id AND ((not phh.unlisted) OR $2) AND ((not phh.hidden) OR $2))) AS version,
-       json_agg(DISTINCT version) as "versions", p.hidden, p.unlisted
+       json_agg(DISTINCT version) as "versions", p.hidden, p.unlisted,
+       json_agg(to_jsonb (pl.*) - 'referencee_id') as previously
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
+LEFT JOIN blog.Previously_Link_Titles pl ON p.id = pl.referencee_id
 LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND ((not ph.unlisted) OR $2) AND ((not ph.hidden) OR $2))
 WHERE p.ID = $1 AND (NOT p.hidden OR (p.hidden AND $2))
 GROUP BY p.ID, u.ID;
@@ -52,19 +54,23 @@ SELECT p.ID, p.Title, p.created_at, p.Content, p.tags, p.version, 0 AS "amount-o
 			 u.Nickname,
 			 'img_location',
 			 u.Img_location) as "creator",
-     json_agg(DISTINCT ph.version) as "versions", p.hidden, p.unlisted
+     json_agg(DISTINCT ph.version) as "versions", p.hidden, p.unlisted,
+     json_agg(to_jsonb (pl.*) - 'referencee_id') as previously
 FROM blog.Post_History p
 JOIN blog.Users u ON u.ID = p.creator_id
 LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND (not ph.unlisted) AND (not ph.hidden))
+LEFT JOIN blog.Previously_Link_Titles pl ON p.id = pl.referencee_id
 WHERE p.ID = $1 AND p.version = $2 AND not p.hidden
 GROUP BY p.ID, p.Title, p.created_at, p.Content, p.tags, p.version, "amount-of-comments", u.username, u.nickname, u.img_location;
 
 
 -- name: get-all*
-SELECT p.id, p.Title, p.Content, p.created_at, p.tags, u.Username, u.Nickname, u.Img_location, COUNT(c.ID) AS "amount-of-comments", p.hidden, p.unlisted
+SELECT p.id, p.Title, p.Content, p.created_at, p.tags, u.Username, u.Nickname, u.Img_location, COUNT(c.ID) AS "amount-of-comments", p.hidden, p.unlisted,
+       json_agg(to_jsonb (pl.*) - 'referencee_id') as previously
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
 LEFT JOIN blog.Comment c ON c.parent_post_id = p.ID
+LEFT JOIN blog.Previously_Link_Titles pl ON p.id = pl.referencee_id
 WHERE NOT p.hidden
 GROUP BY p.ID, u.ID
 ORDER BY p.created_at DESC
@@ -78,11 +84,13 @@ ORDER BY p.created_at DESC
 -- $3 == show-hidden?
 -- name: get-page*
 -- returns: :array-hash
-SELECT p.ID, p.Title, p.Content, p.created_at, p.tags, COUNT(c.ID) AS "amount-of-comments", json_build_object('username', u.Username, 'nickname', u.Nickname, 'img_location', u.Img_location) as "creator", json_agg(DISTINCT version) as "versions", p.hidden, p.unlisted
+SELECT p.ID, p.Title, p.Content, p.created_at, p.tags, COUNT(c.ID) AS "amount-of-comments", json_build_object('username', u.Username, 'nickname', u.Nickname, 'img_location', u.Img_location) as "creator", json_agg(DISTINCT version) as "versions", p.hidden, p.unlisted,
+       json_agg(to_jsonb (pl.*) - 'referencee_id') as previously
 FROM blog.Post p
 JOIN blog.Users u ON u.ID = p.creator_id
 LEFT JOIN blog.Comment c ON c.parent_post_id = p.ID
 LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND ((not ph.unlisted) OR $3) AND ((not ph.hidden) OR $3))
+LEFT JOIN blog.Previously_Link_Titles pl ON p.id = pl.referencee_id
 WHERE ((NOT p.unlisted) OR $3)
   AND ((NOT p.hidden) OR $3)
 GROUP BY p.ID, u.ID
@@ -163,3 +171,10 @@ where id = $6;
 update blog.post
 set hidden = $2 
 where id = $1;
+
+-- name: link-previously
+INSERT INTO blog.Previously_Link VALUES ($1, $2);
+
+-- name: search-posts
+-- returns: :array-hash
+select post.id, post.title from blog.Post where (title ilike '%'||$1||'%' or content ilike '%'||$1||'%') and not unlisted and not hidden;

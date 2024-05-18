@@ -127,3 +127,9 @@ saveSettings settings =
         , expect = Http.expectWhatever SettingsSaved
         , timeout = Nothing
         , tracker = Nothing}
+
+searchPreviouslyPosts search_term =
+    Http.post
+        { url = "/api/posts/search-previously"
+        , body = Http.stringBody "application/json" search_term
+        , expect = Http.expectJson PreviouslySearchResult (Json.list Article.previouslyDocDecoder)}

@@ -265,6 +265,14 @@ header {
     grid-column: 2;
 }
 
+.previouslyHeader {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.previouslyPostResult {
+    display: block;
+}
 
 @media only screen and (max-device-width:480px)
 {

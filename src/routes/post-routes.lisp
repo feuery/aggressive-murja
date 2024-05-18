@@ -85,6 +85,14 @@
   (let ((creator-id (gethash "id" *user*)))
     (prin1-to-string (caar (murja.posts.post-db:insert-post "New title" "New post" creator-id "[]" t nil)))))
 
+(defroute search-prev ("/api/posts/search-previously" :method :post
+						      :decorators (@json
+								   @transaction
+								   @authenticated
+								   (@can? "create-post"))) ()
+  (let* ((search-body (hunchentoot:raw-post-data :force-text t)))
+    (stringify (murja.posts.post-db:search-posts search-body))))
+
 (defroute post-update-route ("/api/posts/post" :method :put 
 					       :decorators (@json
 							    @transaction
@@ -99,9 +107,13 @@
 				(gethash "tags" request-body) 'list))
 		    #())))
 	 (post-id (gethash "id" request-body))
+	 (previously-links (coerce (gethash "previously" request-body) 'list))
 	 (hidden (gethash "hidden" request-body))
 	 (unlisted (gethash "unlisted" request-body)))
     (log:info "updating post ~d" post-id)
 
     (murja.posts.post-db:update-post title content tags hidden unlisted post-id)
+    (dolist (link previously-links)
+      (let ((id (gethash "id" link)))
+	(murja.posts.post-db:link-previously post-id id)))
     ""))

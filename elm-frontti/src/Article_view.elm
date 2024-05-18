@@ -42,4 +42,9 @@ articleView settings loginstate zone the_actual_post =
                                     |> List.filter ((/=) "")
                                     |> List.map ( \tag -> span [] [ a [ href ("/blog/tags/" ++ tag)
                                                                       , class "tag" ] [text tag]
-                                                                  , text ", "]))]
+                                                                  , text ", "]))
+                           , div [ class "previously" ]
+                               (  the_actual_post.previously
+                               |> List.map (\prev -> span [] [ a [ href ("/blog/post/" ++ (String.fromInt prev.id))]
+                                                                   [ text settings.previously_label ]
+                                                             , text ", "]))]
