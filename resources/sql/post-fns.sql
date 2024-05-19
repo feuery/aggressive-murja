@@ -173,7 +173,7 @@ set hidden = $2
 where id = $1;
 
 -- name: link-previously
-INSERT INTO blog.Previously_Link VALUES ($1, $2);
+INSERT INTO blog.Previously_Link VALUES ($1, $2) ON CONFLICT DO NOTHING;
 
 -- name: search-posts
 -- returns: :array-hash
