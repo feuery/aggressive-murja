@@ -45,6 +45,7 @@ articleView settings loginstate zone the_actual_post =
                                                                   , text ", "]))
                            , div [ class "previously" ]
                                (  the_actual_post.previously
-                               |> List.map (\prev -> span [] [ a [ href ("/blog/post/" ++ (String.fromInt prev.id))]
+                               |> List.map (\prev -> span [] [ a [ href ("/blog/post/" ++ (String.fromInt prev.id))
+                                                                 , title prev.title]
                                                                    [ text settings.previously_label ]
                                                              , text ", "]))]
