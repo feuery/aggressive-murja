@@ -127,6 +127,7 @@ port prompt : String -> Cmd msg
 port alert : String -> Cmd msg
 port showPreviousPostsModal: (() -> Cmd msg)
 port closePreviousPostsModal: (() -> Cmd msg)
+port showPreviousPostPreviewModal: (() -> Cmd msg)
 port tags : (String -> msg) -> Sub msg
 port aceStateUpdate : (String -> msg) -> Sub msg
 
@@ -238,7 +239,7 @@ update msg model =
             case result of
                 Ok post ->
                     ({ model | view_state = PostEditor
-                     , postEditorSettings = Just (PostEditorSettings post "" False)}
+                     , postEditorSettings = Just (PostEditorSettings post "" False Nothing)}
                     , Cmd.none)
                 Err error ->
                     ( model
@@ -542,8 +543,27 @@ update msg model =
             ({ model | settings = Maybe.map (\settings ->
                                                  { settings | previously_label = label})
                    model.settings}
-            , Cmd.none)                       
-            
+            , Cmd.none)
+        LoadPreviouslyPreview prev_article ->
+            ( model
+            , loadPreviousArticle prev_article.id )
+        PreviousPostReceived result ->
+            case result of
+                Ok article ->
+                    let postEditorSettings = model.postEditorSettings
+                    in
+                        ({ model
+                             | postEditorSettings = Maybe.map (\settings ->
+                                                                   { settings
+                                                                         | previewing_previously = Just article}) postEditorSettings}
+                        , showPreviousPostPreviewModal ())
+                Err err ->
+                    ( model
+                    , alert ("Failed to load a previosly-post with error: " ++ (errToString err)))
+        ClosePreviousPostPreviewModal ->
+            ( model
+            , closePreviousPostsModal ())
+
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings
                                    , getTitles

@@ -59,12 +59,28 @@ filesDecoder : D.Decoder (List File)
 filesDecoder =
   D.at ["target","files"] (D.list File.decoder)
 
-previouslyButtons post loadedPosts =
+previously_row p
+    = li [] [ murja_button [ onClick (LoadPreviouslyPreview p) ] [ text p.title]
+            , button [ onClick (DropPreviously p)] [ text "X"]]
+
+previouslyButtons post loadedPosts previewingArticle article_settings =
+    let { app_settings, loginState , tz} = article_settings
+    in
     div [ class "previously-buttons" ]
         [ murja_button [ onClick ShowPreviousPostsModal ] [ text "Link previous posts"]
         , ul []
             ( post.previously
-            |> List.map (\p -> li [] [ text p.title, button [ onClick (DropPreviously p)] [ text "X"]]))
+            |> List.map previously_row)
+        , node "dialog" [ id "previewPreviouslyModal" ]
+            (case previewingArticle of
+                Just article ->
+                    [ div [ class "dialog" ]
+                          [ header [ class "previouslyHeader" ] [ button [ onClick ClosePreviousPostPreviewModal ] [ text "X"]]
+                          , case loginState of
+                                LoggedIn user ->
+                                    Article_view.articleView app_settings loginState tz article
+                                _ -> div [] [text "You're not logged in"]]]
+                Nothing -> [])
         , node "dialog" [ id "previouslyModal" ]
             [ div [ class "dialog" ]
                   [ header [ class "previouslyHeader" ] [ button [ onClick ClosePreviousPostsModel ] [ text "X"]]
@@ -97,7 +113,10 @@ postEditor post tag showImageModal loadedImages draggingImages editorSettings ap
                                  , onClick GetListOfImages]
                         [text "Insert image"]]
             , tagView post tag
-            , previouslyButtons post searchedPosts
+            , previouslyButtons post searchedPosts editorSettings.previewing_previously
+                { app_settings = app_settings
+                , loginState = loginState
+                , tz = tz }
             , div [ class "editor-grouper" ]
                 [ label [ for "hidden"]
                       [ text "Hidden article"]

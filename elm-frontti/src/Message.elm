@@ -58,7 +58,8 @@ type alias MediaListState =
 type alias PostEditorSettings =
     { article : Article.Article
     , selected_tag : String
-    , show_preview : Bool}
+    , show_preview : Bool
+    , previewing_previously : Maybe Article.Article}
     
 type alias Model =
     { view_state : ViewState
@@ -138,6 +139,9 @@ type Msg
   | SelectPreviouslyPost Article.PreviousArticle
   | DropPreviously Article.PreviousArticle
   | SetPreviouslyLabel String
+  | LoadPreviouslyPreview Article.PreviousArticle
+  | PreviousPostReceived (Result Http.Error Article.Article)
+  | ClosePreviousPostPreviewModal
 
 -- ports
 port reallySetupAce : String -> Cmd msg

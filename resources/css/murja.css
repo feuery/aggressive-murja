@@ -92,7 +92,7 @@ html, body {
     width: 100%;
 }
 
-body {
+body, dialog {
     background-color: #000000;
     font-family: 'Helvetica Neue', Verdana, Helvetica, Arial, sans-serif;
     color: #00CC00;

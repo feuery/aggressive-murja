@@ -26,8 +26,10 @@
 	    (parse (gethash key post)))))
 
   (setf (gethash "previously" post)
-	(or 
-	 (remove-if-not #'hash-table-p (coerce (gethash "previously" post) 'list))
+	(or
+	 (remove-duplicates
+	  (remove-if-not #'hash-table-p (coerce (gethash "previously" post) 'list))
+	  :test 'equalp)
 	 #()))
 
   (setf (gethash "created_at" post)

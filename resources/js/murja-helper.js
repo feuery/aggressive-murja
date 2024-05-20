@@ -48,7 +48,13 @@ app.ports.showPreviousPostsModal.subscribe(_ => {
     document.getElementById('previouslyModal').showModal();
 });
 
+app.ports.showPreviousPostPreviewModal.subscribe(_ => {
+    document.getElementById('previewPreviouslyModal').showModal();
+});
+
 
 app.ports.closePreviousPostsModal.subscribe(_ => {
-    document.getElementById('previouslyModal').close();
+    document.querySelectorAll('dialog').forEach(dialog => {
+	dialog.close();
+    });
 });

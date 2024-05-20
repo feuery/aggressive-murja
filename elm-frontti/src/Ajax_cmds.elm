@@ -133,3 +133,9 @@ searchPreviouslyPosts search_term =
         { url = "/api/posts/search-previously"
         , body = Http.stringBody "application/json" search_term
         , expect = Http.expectJson PreviouslySearchResult (Json.list Article.previouslyDocDecoder)}
+
+
+loadPreviousArticle post_id =
+    Http.get
+        { url = "/api/posts/post/" ++ (String.fromInt post_id)
+        , expect = Http.expectJson PreviousPostReceived Article.articleDecoder}
