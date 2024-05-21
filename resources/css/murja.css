@@ -274,6 +274,12 @@ header {
     display: block;
 }
 
+.page-changer {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
 @media only screen and (max-device-width:480px)
 {
     body {

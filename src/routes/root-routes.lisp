@@ -114,3 +114,7 @@
 
 (defroute ddddddd ("/blog/settings" :method :get) ()
   *root*)
+
+
+(defroute ddddddd ("/blog/page/:page" :method :get) ()
+  *root*)

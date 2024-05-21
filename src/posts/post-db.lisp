@@ -37,8 +37,12 @@
   post)
 
 (defun get-page (page page-size &key allow-hidden?)
-  (let ((resulting-page (coerce 
-	       (get-page* page page-size allow-hidden?) 'list)))
+  (let ((page (if (< page 1)
+		  1
+		  page))
+	(resulting-page (coerce
+			 (get-page* (* (1- page) page-size)
+				    page-size allow-hidden?) 'list)))
     (mapcar #'fix-post 
 	    resulting-page)))
 

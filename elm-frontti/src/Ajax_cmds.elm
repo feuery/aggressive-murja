@@ -20,10 +20,9 @@ getEditablePosts =
         { url = "/api/posts/all-titles"
         , expect = Http.expectJson EditableTitlesReceived (Json.list Article.sidebarTitleDecoder) }
 
-getPage : Int -> Cmd Msg
 getPage page_id =
     Http.get
-        { url = "/api/posts/page/" ++ (String.fromInt page_id) ++ "/page-size/6"
+        { url = "/api/posts/page/" ++ (String.fromInt page_id)
         , expect = Http.expectJson PageReceived Page.pageDecoder}
 
 getPost : Int -> Cmd Msg

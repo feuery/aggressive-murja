@@ -112,38 +112,55 @@
 	  (is (equalp 2 (length existing-unlisted-posts))))
 
 	(literal 
-      A simple grep of the repository tells us that the interesting functions to test are":"
-      "feuer@vivacia aggressive-murja % grep -iR hidden src |grep -i defun" => 
-      - "src/posts/post-db.lisp:(defun get-titles-by-year (&key allow-hidden?)"
-      - "src/posts/post-db.lisp:(defun get-page (page page-size &key allow-hidden?)"
-      - "src/posts/post-db.lisp:(defun get-post (id &key allow-hidden?)"
-      - "src/posts/post-db.lisp:(defun get-tagged (tag &key allow-hidden?)"
+	 A simple grep of the repository tells us that the interesting functions to test are":"
+	 "feuer@vivacia aggressive-murja % grep -iR hidden src |grep -i defun" => 
+	 - "src/posts/post-db.lisp:(defun get-titles-by-year (&key allow-hidden?)"
+	 - "src/posts/post-db.lisp:(defun get-page (page page-size &key allow-hidden?)"
+	 - "src/posts/post-db.lisp:(defun get-post (id &key allow-hidden?)"
+	 - "src/posts/post-db.lisp:(defun get-tagged (tag &key allow-hidden?)"
 
-      !L
-      (let ((titles (murja.posts.post-db:get-titles-by-year :allow-hidden? nil))
-	    (first-page (murja.posts.post-db:get-page 1 555 :allow-hidden? nil))
-	    (hidden-post (murja.posts.post-db:get-post hidden-post-id :allow-hidden? nil))
-	    (unlisted-post (murja.posts.post-db:get-post unlisted-post-id :allow-hidden? nil))
-	    (test-hidden-tagged-posts (murja.posts.post-db:get-tagged "test-hidden" :allow-hidden? nil)))
+	 !L
+	 (let ((titles (murja.posts.post-db:get-titles-by-year :allow-hidden? nil))
+	       (first-page (murja.posts.post-db:get-page 1 555 :allow-hidden? nil))
+	       (count-of-posts (caar (postmodern:query "SELECT COUNT(*) FROM blog.Post")))
+	       (hidden-post (murja.posts.post-db:get-post hidden-post-id :allow-hidden? nil))
+	       (unlisted-post (murja.posts.post-db:get-post unlisted-post-id :allow-hidden? nil))
+	       (test-hidden-tagged-posts (murja.posts.post-db:get-tagged "test-hidden" :allow-hidden? nil)))
 
-	(is (null hidden-post))
-	(is (null test-hidden-tagged-posts))
-	
-	;; unlisted posts should be always visible
-	(is (atom unlisted-post))
-	;;  just missing from the sidebar titles 
-	(is (not (member unlisted-post-id
-			 (mapcar (lambda (title) (gethash "Id" title)) titles)
-			 :test 'equal)))
-	
+	   (is (null hidden-post))
+	   (is (null test-hidden-tagged-posts))
+	   
+	   ;; unlisted posts should be always visible
+	   (is (atom unlisted-post))
+	   ;;  just missing from the sidebar titles 
+	   (is (not (member unlisted-post-id
+			    (mapcar (lambda (title) (gethash "Id" title)) titles)
+			    :test 'equal)))
+	   
 
-	;; test sidebar titles 
-	(is (not (member "Hidden title" (mapcar (lambda (title) (gethash "Title" title)) titles) :test 'equal)))
-	(is (not (member "Unlisted title" (mapcar (lambda (title) (gethash "Title" title)) titles) :test 'equal)))
+	   ;; test sidebar titles 
+	   (is (not (member "Hidden title" (mapcar (lambda (title) (gethash "Title" title)) titles) :test 'equal)))
+	   (is (not (member "Unlisted title" (mapcar (lambda (title) (gethash "Title" title)) titles) :test 'equal)))
 
-	;; test the page
-	(is (not (member "Hidden title" (mapcar (lambda (title) (gethash "Title" title)) first-page) :test 'equal)))
-	(is (not (member "Unlisted title" (mapcar (lambda (title) (gethash "Title" title)) first-page) :test 'equal))))))))))
+	   ;; test the page
+	   (is (not (member "Hidden title" (mapcar (lambda (title) (gethash "Title" title)) first-page) :test 'equal)))
+	   (is (not (member "Unlisted title" (mapcar (lambda (title) (gethash "Title" title)) first-page) :test 'equal)))
+
+	   ;; test the page really badly
+	   (is (equalp 4 
+		       count-of-posts))
+
+	   (literal
+	    There are now 4 posts in the db. Let's read it in 2 two post pages and make sure they do not share posts.
+
+	    !L
+	    (let ((pages (mapcar (lambda (p) (gethash "id" p))
+				 (concatenate 'list 
+					      (murja.posts.post-db:get-page 1 2 :allow-hidden? t)
+					      (murja.posts.post-db:get-page 2 2 :allow-hidden? t)))))
+	      (format t "pages: ~a~%" pages)
+	      (is (equalp 4
+			  (length (remove-duplicates pages)))))))))))))
 
 ;; (setf fiveam:*run-test-when-defined* t)
 

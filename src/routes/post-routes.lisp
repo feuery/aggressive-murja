@@ -1,5 +1,6 @@
 (defpackage murja.routes.post-routes
   (:use :cl)
+  (:import-from :murja.routes.settings-routes :get-settings)
   (:import-from :lisp-fixup :partial)
   (:import-from :com.inuoe.jzon :stringify :parse)
   (:import-from :murja.middleware.db :@transaction)
@@ -22,20 +23,20 @@
   (let ((titles (get-titles-by-year :allow-hidden? t)))
     (stringify titles)))    
 
-(defroute get-page-route ("/api/posts/page/:page/page-size/:page-size" :method :get
-								       :decorators (@json @transaction))
-    (&path (page 'integer)
-	   &path (page-size 'integer))
-  (let* ((page (1- page))
-	 (posts (or (murja.posts.post-db:get-page page page-size) #()))
-	 (id page)
-	 (last-page? (zerop (length (murja.posts.post-db:get-page (1+ page) page-size))))
-	 (result (make-hash-table)))
-    (setf (gethash "id" result) id)
-    (setf (gethash "posts" result) posts)
-    (setf (gethash "last-page?" result) last-page?)
+(defroute get-page-route ("/api/posts/page/:page" :method :get
+						  :decorators (@json @transaction))
+    (&path (page 'integer))
+  (let* ((settings (get-settings))
+	 (page-size (gethash "recent-post-count" settings)))
+    (let* ((id page)
+	   (posts (or (murja.posts.post-db:get-page page page-size) #()))
+	   (last-page? (zerop (length (murja.posts.post-db:get-page (1+ page) page-size))))
+	   (result (make-hash-table)))
+      (setf (gethash "id" result) id)
+      (setf (gethash "posts" result) posts)
+      (setf (gethash "last-page?" result) last-page?)
 
-    (com.inuoe.jzon:stringify result)))
+      (com.inuoe.jzon:stringify result))))
 
 (defroute hidden-post ("/api/posts/post/:id/allow-hidden/:hidden" :method :get
 								  :decorators (@json

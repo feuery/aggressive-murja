@@ -633,9 +633,14 @@ view model =
                                                                    post_elements
                                                                else
                                                                    [ div [class "post"] [ text "There are no posts in this instance"]])
-                                                            , [footer [(attribute "data-testid" "page-changer")] (if page.id > 1 then [ a [href ("/blog/page/" ++ fromInt (page.id + 1))] [text "Older posts"]
-                                                                                                 , a [href ("/blog/page/" ++ fromInt (page.id - 1)), class "newer-post"] [text "Newer posts"]]
-                                                                             else [a [href ("/blog/page/" ++ fromInt (page.id + 1))] [text "Next page"]])]])
+                                                            , [footer [ attribute "data-testid" "page-changer"
+                                                                      , class "page-changer" ]
+                                                                   (if page.id > 1 then
+                                                                        [ a [href ("/blog/page/" ++ fromInt (page.id + 1))] [text "Older posts"]
+                                                                        , a [href ("/blog/page/" ++ fromInt (page.id - 1)), class "newer-post"] [text "Newer posts"]]
+
+                                                                    else
+                                                                        [a [href ("/blog/page/" ++ fromInt (page.id + 1))] [text "Older posts"]])]])
                                            ShowError err ->
                                                [pre [] [text err]]
                                            PostEditorList titles -> [ PostsAdmin.view titles ]
