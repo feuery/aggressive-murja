@@ -38,14 +38,18 @@ articleView settings loginstate zone the_actual_post =
                                                     
                            , article [ class "content"
                                      , dangerouslySetInnerHTML the_actual_post.content] []
-                           , div [] ( the_actual_post.tags
-                                    |> List.filter ((/=) "")
-                                    |> List.map ( \tag -> span [] [ a [ href ("/blog/tags/" ++ tag)
-                                                                      , class "tag" ] [text tag]
-                                                                  , text ", "]))
                            , div [ class "previously" ]
                                (  the_actual_post.previously
                                |> List.map (\prev -> span [] [ a [ href ("/blog/post/" ++ (String.fromInt prev.id))
                                                                  , title prev.title]
                                                                    [ text settings.previously_label ]
-                                                             , text ", "]))]
+                                                             , text ", "]))
+                           , let tags = ( the_actual_post.tags
+                                        |> List.filter ((/=) ""))
+                             in
+                                 if not (List.isEmpty tags) then 
+                                     div [ class "tags" ] ( tags 
+                                                          |> List.map ( \tag -> span [] [ a [ href ("/blog/tags/" ++ tag)
+                                                                                            , class "tag" ] [text tag]
+                                                                                        , text ", "]))
+                                 else div [] []]

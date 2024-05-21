@@ -280,6 +280,11 @@ header {
     width: 100%;
 }
 
+.tags {
+    background-color: #444;
+    font-size: 1.3em;
+}
+
 @media only screen and (max-device-width:480px)
 {
     body {
