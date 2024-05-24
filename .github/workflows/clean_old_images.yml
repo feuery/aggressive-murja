@@ -1,0 +1,23 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 1 1-12 *'
+
+jobs:
+  clean-ghcr:
+    name: Delete old unused container images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Delete old released images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: murja 
+          cut-off: One month ago UTC
+          keep-at-least: 5
+          account-type: personal
+          token: ${{ secrets.GITHUB_TOKEN }}
+          skip-tags: latest
+          token-type: github-token
