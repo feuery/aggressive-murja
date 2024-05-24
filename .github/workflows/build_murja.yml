@@ -5,7 +5,7 @@ on:
     
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: aggressive-murja
+  IMAGE_NAME: murja
   
 jobs:
   test-lisp:
@@ -83,7 +83,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Docker image
+      - name: Build and push Docker :latest image
+        if:  github.ref_name == 'main'
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -92,6 +93,17 @@ jobs:
             ghcr.io/feuery/murja:latest
             ghcr.io/feuery/murja:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Build and push Docker :latest image
+        if: github.ref_name != 'main'
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/feuery/murja:${{ github.ref_name }}
+            ghcr.io/feuery/murja:${{ github.sha }}
+          labels: ${{ steps.meta.outputs.labels }}          
           
   test-playwright:
     name: Runs playwright browser tests
