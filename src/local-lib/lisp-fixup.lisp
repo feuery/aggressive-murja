@@ -1,6 +1,6 @@
 (defpackage lisp-fixup
   (:use :cl)
-  (:export :sha-512 :partial :compose :drop :slurp-bytes :slurp-utf-8))
+  (:export :*rfc822* :sha-512 :partial :compose :drop :slurp-bytes :slurp-utf-8))
 
 (in-package :lisp-fixup)
 
@@ -47,9 +47,46 @@
               :initial-value x
               :from-end t)))
 
+(defvar *rfc822* nil)
+
+(defun weekday->string (day)
+  (case day
+    (1 "Mon")
+    (2 "Tue")
+    (3 "Wed")
+    (4 "Thu")
+    (5 "Fri")
+    (6 "Sat")
+    (0 "Sun")
+    (t "")))
+
+(defun month->string (day)
+  (case day
+    (1 "Jan")
+    (2 "Feb")
+    (3 "Mar")
+    (4 "Apr")
+    (5 "May")
+    (6 "Jun")
+    (7 "Jul")
+    (8 "Aug")
+    (9 "Sep")
+    (10 "Oct")
+    (11 "Nov")
+    (12 "Dec")
+    (t "")))
+
 (defun fix-timestamp (timestamp)
   "Fixes timestamps returned from postmodern to a json-format elm can parse" 
   (multiple-value-bind (year month day hour minute second millisec)
       (simple-date:decode-timestamp timestamp)
-    (declare (ignore millisec))
-    (format nil "~d-~2,'0d-~2,'0dT~2,'0d:~2,'0d:~2,'0dZ" year month day hour minute second)))
+    (let ((weekday (simple-date:day-of-week timestamp)))
+
+      (if *rfc822*
+	  (format nil "~a, ~2,'0d ~a ~d ~2,'0d:~2,'0d:~2,'0d EST"
+		  (weekday->string weekday)
+		  day
+		  (month->string month)
+		  year
+		  hour minute second)
+	  (format nil "~d-~2,'0d-~2,'0dT~2,'0d:~2,'0d:~2,'0dZ" year month day hour minute second)))))
