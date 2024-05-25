@@ -24,11 +24,7 @@
       (dolist (post posts)
 	(xml-emitter:rss-item (gethash "title" post)
 			      :link (format nil "~a/post/~d" link (gethash "id" post))
-			      :description (let ((len (length (gethash "content" post))))
-					     (if (> len 500)
-						 (subseq (gethash "content" post)
-							 0 500)
-						 (gethash "content" post)))
+			      :description (gethash "content" post)
 			      :author (gethash "nickname"
 					       (gethash "creator" post))
 			      :pubdate (gethash "created_at" post))))
