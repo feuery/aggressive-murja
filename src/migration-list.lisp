@@ -23,6 +23,7 @@
 (defmigration "016-hardcoded-hidden-unlisted")
 (defmigration "017-settings-in-db")
 (defmigration "018-previously")
+(defmigration "019-rss-settings")
 
 (defun prepare-e2e-migration ()
   (postmodern:execute "DELETE FROM blog.Users")

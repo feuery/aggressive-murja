@@ -17,7 +17,8 @@
                "str"
 	       "cl-fad"
 	       "log4cl"
-	       "cl-advice")
+	       "cl-advice"
+	       "xml-emitter")
   :description "A rewrite of the <a href=\"https://github.com/feuery/murja-blog/\">murja blogging engine</a> in lisp"
   :components ((:module "src"
 		:components
@@ -46,6 +47,7 @@
 		   (:file "login-routes")
 		   (:file "post-routes")
 		   (:file "media-routes")
+		   (:file "rss-routes")
 		   (:file "root-routes")))
 		 (:file "main"))))
   :in-order-to ((test-op (test-op "pichunter/tests"))))
