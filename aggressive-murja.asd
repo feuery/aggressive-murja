@@ -18,7 +18,10 @@
 	       "cl-fad"
 	       "log4cl"
 	       "cl-advice"
-	       "xml-emitter")
+	       "xml-emitter"
+	       "drakma"
+	       "xmls"
+	       "cl-date-time-parser")
   :description "A rewrite of the <a href=\"https://github.com/feuery/murja-blog/\">murja blogging engine</a> in lisp"
   :components ((:module "src"
 		:components
@@ -41,6 +44,10 @@
 		  :components
 		  ((:file "media-db")))
 
+		 (:module "rss"
+		  :components
+		  ((:file "reader-db")))
+
 		 (:module "routes"
 		  :components
 		  ((:file "settings-routes")
@@ -48,6 +55,7 @@
 		   (:file "post-routes")
 		   (:file "media-routes")
 		   (:file "rss-routes")
+		   (:file "rss-reader-routes")
 		   (:file "root-routes")))
 		 (:file "main"))))
   :in-order-to ((test-op (test-op "pichunter/tests"))))

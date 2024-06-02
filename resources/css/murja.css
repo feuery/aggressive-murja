@@ -285,6 +285,20 @@ header {
     font-size: 1.3em;
 }
 
+.feed {
+    list-style: none;
+    width: 100%;
+    margin-bottom: 100px;
+}
+
+.feed-list {
+    display: block;
+}
+
+.feed header {
+    display: block;
+}
+
 @media only screen and (max-device-width:480px)
 {
     body {

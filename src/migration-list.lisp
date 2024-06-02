@@ -24,6 +24,7 @@
 (defmigration "017-settings-in-db")
 (defmigration "018-previously")
 (defmigration "019-rss-settings")
+(defmigration "020-rss-reader-stuff")
 
 (defun prepare-e2e-migration ()
   (postmodern:execute "DELETE FROM blog.Users")

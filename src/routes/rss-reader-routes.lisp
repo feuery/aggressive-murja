@@ -1,0 +1,38 @@
+(defpackage murja.routes.rss-reader-routes
+  (:use :cl)
+  (:import-from :easy-routes :defroute)
+  (:import-from :com.inuoe.jzon :stringify :parse)
+  (:import-from :murja.middleware.db :@transaction)
+  (:import-from :murja.middleware.auth :@authenticated :*user* :@can?)
+  (:import-from :murja.middleware.json :@json)
+  (:import-from :murja.rss.reader-db :update-feeds :get-user-feeds :subscribe-to-feed))
+
+(in-package :murja.routes.rss-reader-routes)
+
+(defroute user-feeds-route ("/api/user/feeds"
+			    :method :get
+			    :decorators (@json
+					 @transaction
+					 @authenticated)) ()
+  (assert (not (null *user*)))
+  (assert (not (null (gethash "id" *user*))))
+	  
+  (let ((feeds (or (get-user-feeds (gethash "id" *user*)) #())))
+    (com.inuoe.jzon:stringify feeds)))
+
+(defroute user-feeds-saving ("/api/user/feeds"
+			     :method :post
+			     :decorators (@transaction @authenticated)) ()
+  (let* ((request-body (parse (hunchentoot:raw-post-data :force-text t)))
+	(name (gethash "name" request-body))
+	(url (gethash "url" request-body)))
+    (assert (not (null *user*)))
+    (subscribe-to-feed name url *user*)
+    (setf (hunchentoot:return-code*) 204)
+    ""))
+
+;; This will be called by cron/curl
+(defroute update-feeds-rotue ("/api/rss/update" :method :get) ()
+  (update-feeds)
+  (setf (hunchentoot:return-code*) 204)
+    "")

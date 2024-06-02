@@ -12,6 +12,7 @@ import Browser.Navigation as Nav
 import Settings
 import Url
 import Title
+import Feeds
 import Image exposing (Image, ReferencingPost)
 
 import File exposing (File)
@@ -29,6 +30,7 @@ type ViewState
     | MediaList                     -- list all the image blobs in db
     | TaggedPostsView (List Article.Article)
     | SettingsEditor
+    | Feeds (List Feeds.Feed)
       
 type alias User =
     { username : String
@@ -74,7 +76,8 @@ type alias Model =
     , postEditorSettings: Maybe PostEditorSettings
     , zone : Time.Zone
     , titles : List Article.Title
-    , searchedPosts : List Article.PreviousArticle}
+    , searchedPosts : List Article.PreviousArticle
+    , new_feed: Maybe Feeds.NewFeed}
     
 type Msg
   = PageReceived (Result Http.Error P.Page)
@@ -142,6 +145,11 @@ type Msg
   | LoadPreviouslyPreview Article.PreviousArticle
   | PreviousPostReceived (Result Http.Error Article.Article)
   | ClosePreviousPostPreviewModal
+  | FeedsReceived (Result Http.Error (List Feeds.Feed))
+  | SetFeedUrl String 
+  | SetFeedName String
+  | AddFeed Feeds.NewFeed
+  | FeedAdded (Result Http.Error ())
 
 -- ports
 port reallySetupAce : String -> Cmd msg
