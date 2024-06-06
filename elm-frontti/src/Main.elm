@@ -693,7 +693,7 @@ view model =
                                                    Nothing -> [ div [] [ text "No post loaded" ]]
                                            MediaList -> [ medialist model.loadedImages model.medialist_state ]
                                            SettingsEditor -> [ SettingsEditor.editor settings]
-                                           Feeds feeds -> [ FeedView.feeds feeds model.new_feed ])
+                                           Feeds feeds -> [ FeedView.feeds settings model.zone feeds model.new_feed ])
                         , div [id "sidebar"] [ User.loginView model.loginState
                                              , (sidebarHistory model.titles )
                                              , (case model.view_state of

@@ -299,6 +299,23 @@ header {
     display: block;
 }
 
+.feed-items {
+    height: 500px;
+    overflow-y: scroll;
+}
+
+.feed-items li {
+    list-style: none;
+}
+
+.feed-author {
+    margin-left: 1em;
+}
+
+.feed-item {
+    margin-left: 2em;
+}
+
 @media only screen and (max-device-width:480px)
 {
     body {

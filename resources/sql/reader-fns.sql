@@ -6,10 +6,13 @@ SELECT fs.id, fs.name, fs.url,
 			  'nickname',
 			  u.Nickname,
 			  'img_location',
-			  u.Img_location) as "creator"
+			  u.Img_location) as "creator",
+       json_agg(row_to_json(fi.*)) as "items"
 FROM blog.feed_subscription fs
 JOIN blog.Users u ON u.ID = fs.owner
-WHERE owner = $1;
+JOIN blog.feed_item fi ON fs.id = fi.feed
+WHERE owner = $1
+GROUP BY fs.id, u.username, u.nickname, u.img_location;
 
 -- name: get-all-feeds 
 -- returns: :array-hash 

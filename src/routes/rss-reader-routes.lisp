@@ -32,7 +32,8 @@
     ""))
 
 ;; This will be called by cron/curl
-(defroute update-feeds-rotue ("/api/rss/update" :method :get) ()
+(defroute update-feeds-rotue ("/api/rss/update" :method :get
+						:decorators (@transaction)) ()
   (update-feeds)
   (setf (hunchentoot:return-code*) 204)
     "")

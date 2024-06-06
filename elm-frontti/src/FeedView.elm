@@ -2,16 +2,26 @@ module FeedView exposing (..)
 
 import DateFormat as Df
 import Feeds exposing (NewFeed)
+import Time
 import Message exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Button exposing (murja_button)
 import UUID
+import Article_view exposing (formatDateTime)
 
 import Random
 
-feeds fs new_feed  =
+feed_item time_format zone item =
+    li [] [ h1 [] [ text item.title]
+          , h4 [] [ text (formatDateTime time_format zone item.pubdate)]
+          , div [ class "feed-author"] [ text <| "By " ++ item.author]
+          , div [ class "feed-item"
+                , dangerouslySetInnerHTML item.description] []]
+                        
+
+feeds settings zone fs new_feed  =
     let new_feed_state = Maybe.withDefault (NewFeed "" "") new_feed
     in 
     div [] 
@@ -19,7 +29,12 @@ feeds fs new_feed  =
               (List.map (\feed ->
                              li [ class "feed" ]
                              [ header [] [ text feed.name ]
-                             , a [ href feed.url ] [ text feed.url ]]) fs)
+                             , a [ href feed.url ] [ text feed.url ]
+                             , ul [ class "feed-items" ]
+                                 (feed.items
+                                 |> List.sortBy (Time.posixToMillis << .pubdate)
+                                 |> List.reverse
+                                 |> List.map (feed_item settings.time_format zone))]) fs)
         , h3 [] [ text "Add new feed?"]
         , div []
             [ label [ for "name" ] [ text "Feed name" ]

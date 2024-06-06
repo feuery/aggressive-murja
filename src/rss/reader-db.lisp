@@ -1,7 +1,7 @@
 (defpackage murja.rss.reader-db
   (:use :cl :postmodern :binding-arrows)
   (:import-from :halisql :defqueries)
-  (:import-from :lisp-fixup :partial)
+  (:import-from :lisp-fixup :partial :compose)
   (:import-from :cl-date-time-parser :parse-date-time)
   (:export :get-user-feeds :subscribe-to-feed))
 	
@@ -16,7 +16,9 @@
 
 (defun get-user-feeds (user-id)
   (let ((feeds (coerce (get-user-feeds* user-id) 'list)))
-    (mapcar (partial #'parse "creator") feeds)))
+    (mapcar (compose (partial #'parse "items")
+		     (partial #'parse "creator"))
+	    feeds)))
 
 (defun subscribe-to-feed (feed-name feed-url owner)
   (insert-feed feed-name feed-url (gethash "id" owner)))
@@ -59,7 +61,11 @@ pipes it through trivial-utf-8:utf-8-bytes-to-string"
 		     (get-child-item-value "author" (xmls:node-children item))
 		     ;; author seems to be optional value, let's get title from <channel> if missing
 		     (get-child-item-value "title" (xmls:node-children channel))))
-	    (pubDate (parse-date-time (get-child-item-value "pubDate" (xmls:node-children item)))))
+	    (pubDate (cl-epoch:universal->unix-time
+		      (parse-date-time (get-child-item-value "pubDate" (xmls:node-children item))))))
+	(log:info "Parsed ~a as ~a"
+		  (get-child-item-value "pubDate" (xmls:node-children item))
+		  pubdate)
 	(insert-feed-item title link description author pubDate feed-id)))))
 
 (defun current-hour ()
@@ -73,9 +79,11 @@ pipes it through trivial-utf-8:utf-8-bytes-to-string"
 (defvar *last-updated* nil)
 
 (defun update-feeds ()
+  (setf *last-updated* nil)
   (when (or (not *last-updated*)
 	    ;; hourly rate limit
 	    (> (- (current-hour) *last-updated*) 1))
+    (log:info "Updating all feeds")
     (dolist (feed (coerce (get-all-feeds) 'list))
       (update-feed feed))
 

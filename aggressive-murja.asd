@@ -21,7 +21,11 @@
 	       "xml-emitter"
 	       "drakma"
 	       "xmls"
-	       "cl-date-time-parser")
+	       ;; works in cl universal time (epoch at 1900)
+	       "cl-date-time-parser"
+	       ;; transforms those to unix time
+	       "cl-epoch"
+	       )
   :description "A rewrite of the <a href=\"https://github.com/feuery/murja-blog/\">murja blogging engine</a> in lisp"
   :components ((:module "src"
 		:components
