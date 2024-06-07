@@ -62,6 +62,10 @@ type alias PostEditorSettings =
     , selected_tag : String
     , show_preview : Bool
     , previewing_previously : Maybe Article.Article}
+
+type FeedReaderState
+    = PerFeed
+    | SingleFeed
     
 type alias Model =
     { view_state : ViewState
@@ -77,7 +81,8 @@ type alias Model =
     , zone : Time.Zone
     , titles : List Article.Title
     , searchedPosts : List Article.PreviousArticle
-    , new_feed: Maybe Feeds.NewFeed}
+    , new_feed: Maybe Feeds.NewFeed
+    , feedReaderState: FeedReaderState}
     
 type Msg
   = PageReceived (Result Http.Error P.Page)
@@ -150,6 +155,7 @@ type Msg
   | SetFeedName String
   | AddFeed Feeds.NewFeed
   | FeedAdded (Result Http.Error ())
+  | SetPerFeedView
 
 -- ports
 port reallySetupAce : String -> Cmd msg

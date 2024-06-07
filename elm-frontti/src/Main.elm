@@ -67,7 +67,7 @@ subscriptions _ = Sub.batch
                   [ tags ReceivedTag
                   , aceStateUpdate AceStateUpdate]
 
-initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc [] [] Nothing
+initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc [] [] Nothing PerFeed
     
 viewStatePerUrl : Url.Url -> (ViewState, List (Cmd Msg))
 viewStatePerUrl url =
@@ -602,6 +602,15 @@ update msg model =
                 Err error ->
                     ( { model | view_state = ShowError (errToString error) }
                     , Cmd.none)
+        SetPerFeedView ->
+            let state = model.feedReaderState in
+            ({ model
+                 | feedReaderState = case state of
+                                         PerFeed -> SingleFeed
+                                         SingleFeed -> PerFeed}
+            , Cmd.none)
+
+                    
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings
                                    , getTitles
@@ -693,7 +702,7 @@ view model =
                                                    Nothing -> [ div [] [ text "No post loaded" ]]
                                            MediaList -> [ medialist model.loadedImages model.medialist_state ]
                                            SettingsEditor -> [ SettingsEditor.editor settings]
-                                           Feeds feeds -> [ FeedView.feeds settings model.zone feeds model.new_feed ])
+                                           Feeds feeds -> [ FeedView.feeds model.feedReaderState settings model.zone feeds model.new_feed ])
                         , div [id "sidebar"] [ User.loginView model.loginState
                                              , (sidebarHistory model.titles )
                                              , (case model.view_state of

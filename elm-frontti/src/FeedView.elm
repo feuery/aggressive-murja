@@ -19,11 +19,8 @@ feed_item time_format zone item =
           , div [ class "feed-author"] [ text <| "By " ++ item.author]
           , div [ class "feed-item"
                 , dangerouslySetInnerHTML item.description] []]
-                        
 
-feeds settings zone fs new_feed  =
-    let new_feed_state = Maybe.withDefault (NewFeed "" "") new_feed
-    in 
+perFeedView settings zone fs new_feed_state = 
     div [] 
         [ ul [ class "feed-list" ]
               (List.map (\feed ->
@@ -49,4 +46,17 @@ feeds settings zone fs new_feed  =
                     , value new_feed_state.url
                     , type_ "text"] []
             , murja_button [ onClick (AddFeed new_feed_state)] [ text "Add a feed"]]]
-                      
+feeds feedReaderState settings zone fs new_feed  =
+    let new_feed_state = Maybe.withDefault (NewFeed "" "") new_feed
+    in
+        div []
+            [ span [] [ input [ id "feed_state_per_feed"
+                              , type_ "checkbox"
+                              , onClick SetPerFeedView
+                              , checked <| feedReaderState == PerFeed] []
+                      , label [ for "feed_state_per_feed"] [ text "Show rss per feed?"] ]
+            
+                    
+            , case feedReaderState of
+                  PerFeed -> perFeedView settings zone fs new_feed_state
+                  SingleFeed -> div [] [ text "NotImplemented" ]]
