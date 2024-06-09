@@ -15,6 +15,8 @@ import Page as P
 import Message exposing (..)
 import ImageSelector exposing (imageSelector)
 import Button exposing (murja_button)
+import Tab exposing (tabs)
+import Dict exposing (Dict)
 
 import File exposing (File)
 import File.Select as Select
@@ -129,25 +131,25 @@ postEditor post tag showImageModal loadedImages draggingImages editorSettings ap
                 , input [ type_ "checkbox"
                         , id "unlisted"
                         , checked post.unlisted
-                        , onClick ToggleArticleUnlisted] []
-                , label [for "show-preview-cb"]
-                    [text "Show article preview"]
-                , input [ type_ "checkbox"
-                        , id "show-preview-cb"
-                        , checked editorSettings.show_preview
-                        , onClick ToggleArticlePreview] []]]
+                        , onClick ToggleArticleUnlisted] []]]
       , if showImageModal then imageSelector loadedImages else div [] []
-      , if editorSettings.show_preview then
-            case loginState of
-                LoggedIn user ->
-                    Article_view.articleView app_settings loginState tz post
-                _ -> div [] [text "You're not logged in"]
-                        
-        else editor [ id "editor-post-content"
-                    , style "background-color" (if draggingImages then "#880088" else "")
-                    , hijackOn "dragenter" (D.succeed EditorDragEnter)
-                    , hijackOn "dragend" (D.succeed EditorDragLeave)
-                    , hijackOn "dragover" (D.succeed EditorDragEnter)
-                    , hijackOn "dragleave" (D.succeed EditorDragLeave)
-                    , hijackOn "drop" dropDecoder
-                    , hijackOn "ready" (D.succeed (RunAce post.content))]]
+      , case loginState of
+            LoggedIn user ->
+                tabs "posteditor-preview-tab" (if editorSettings.show_preview then
+                                                   "PreviewArticle"
+                                               else
+                                                   "EditArticle")
+                    (Dict.fromList [ ("EditArticle", "Edit article")
+                                   , ("PreviewArticle", "Preview article")])
+                    (Dict.fromList [ ("EditArticle",
+                                          editor [ id "editor-post-content"
+                                                 , style "background-color" (if draggingImages then "#880088" else "")
+                                                 , hijackOn "dragenter" (D.succeed EditorDragEnter)
+                                                 , hijackOn "dragend" (D.succeed EditorDragLeave)
+                                                 , hijackOn "dragover" (D.succeed EditorDragEnter)
+                                                 , hijackOn "dragleave" (D.succeed EditorDragLeave)
+                                                 , hijackOn "drop" dropDecoder
+                                                 , hijackOn "ready" (D.succeed (RunAce post.content))])
+                                   , ("PreviewArticle"
+                                     , Article_view.articleView app_settings loginState tz post)])
+            _ -> div [] [text "You're not logged in"]]

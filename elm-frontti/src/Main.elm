@@ -620,6 +620,13 @@ update msg model =
                         Nothing ->
                             ( model
                             , alert <| "Unknown selected tab " ++ selected_tab)
+                "posteditor-preview-tab" ->
+                    ({ model |
+                           postEditorSettings = 
+                           Maybe.map (\settings -> {settings
+                                                       | show_preview = selected_tab == "PreviewArticle"})
+                           model.postEditorSettings}
+                    , Cmd.none)
                 _ -> ( model
                      , alert <| "Unknown tab " ++ tab_id)
 
