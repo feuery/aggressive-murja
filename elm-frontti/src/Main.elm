@@ -609,6 +609,19 @@ update msg model =
                                          PerFeed -> SingleFeed
                                          SingleFeed -> PerFeed}
             , Cmd.none)
+        SelectTab tab_id selected_tab ->
+            case tab_id of 
+                "rss-feed-tab" ->
+                    case (str_to_readerState selected_tab) of
+                        Just readerstate -> 
+                            ({ model
+                                 | feedReaderState = readerstate}
+                            , Cmd.none)
+                        Nothing ->
+                            ( model
+                            , alert <| "Unknown selected tab " ++ selected_tab)
+                _ -> ( model
+                     , alert <| "Unknown tab " ++ tab_id)
 
                     
 doGoHome_ model other_cmds =

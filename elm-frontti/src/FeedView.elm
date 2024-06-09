@@ -2,6 +2,7 @@ module FeedView exposing (..)
 
 import DateFormat as Df
 import Feeds exposing (NewFeed)
+import Dict 
 import Time
 import Message exposing (..)
 import Html exposing (..)
@@ -10,6 +11,7 @@ import Html.Events exposing (onInput, onClick)
 import Button exposing (murja_button)
 import UUID
 import Article_view exposing (formatDateTime)
+import Tab exposing (tabs)
 
 import Random
 
@@ -46,17 +48,17 @@ perFeedView settings zone fs new_feed_state =
                     , value new_feed_state.url
                     , type_ "text"] []
             , murja_button [ onClick (AddFeed new_feed_state)] [ text "Add a feed"]]]
+
+readerState_str state =
+    case state of
+        PerFeed -> "PerFeed"
+        SingleFeed -> "SingleFeed"
+                             
 feeds feedReaderState settings zone fs new_feed  =
     let new_feed_state = Maybe.withDefault (NewFeed "" "") new_feed
     in
-        div []
-            [ span [] [ input [ id "feed_state_per_feed"
-                              , type_ "checkbox"
-                              , onClick SetPerFeedView
-                              , checked <| feedReaderState == PerFeed] []
-                      , label [ for "feed_state_per_feed"] [ text "Show rss per feed?"] ]
-            
-                    
-            , case feedReaderState of
-                  PerFeed -> perFeedView settings zone fs new_feed_state
-                  SingleFeed -> div [] [ text "NotImplemented" ]]
+        tabs "rss-feed-tab" (readerState_str feedReaderState)
+            (Dict.fromList [ ("PerFeed", "Group by feed")
+                           , ("SingleFeed", "Show all in a feed")])
+            (Dict.fromList [ ("PerFeed", perFeedView settings zone fs new_feed_state)
+                           , ("SingleFeed", div [] [ text "NotImplemented" ])])

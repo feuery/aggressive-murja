@@ -316,6 +316,25 @@ header {
     margin-left: 2em;
 }
 
+.tabs {
+    width: 100%;
+}
+
+.tab-headers {
+    display: flex;
+    justify-content: space-evenly;
+    list-style: none;
+    flex-direction: row;
+}
+
+.tab-header {
+    border-bottom: 2px solid;
+}
+
+.tab-selected {
+    border-bottom: 2px solid #00F;
+}
+
 @media only screen and (max-device-width:480px)
 {
     body {

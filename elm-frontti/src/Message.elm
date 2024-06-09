@@ -66,7 +66,13 @@ type alias PostEditorSettings =
 type FeedReaderState
     = PerFeed
     | SingleFeed
-    
+      
+str_to_readerState str =
+    case str of
+        "PerFeed" -> Just PerFeed
+        "SingleFeed" -> Just SingleFeed
+        _ -> Nothing
+             
 type alias Model =
     { view_state : ViewState
     , settings : Maybe Settings.Settings
@@ -156,6 +162,7 @@ type Msg
   | AddFeed Feeds.NewFeed
   | FeedAdded (Result Http.Error ())
   | SetPerFeedView
+  | SelectTab String String
 
 -- ports
 port reallySetupAce : String -> Cmd msg
