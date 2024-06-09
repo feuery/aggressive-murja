@@ -285,6 +285,60 @@ header {
     font-size: 1.3em;
 }
 
+.feed {
+    list-style: none;
+    width: 100%;
+    margin-bottom: 100px;
+}
+
+.feed-list {
+    display: block;
+}
+
+.feed header {
+    display: block;
+}
+
+.feed-items {
+    height: 500px;
+    overflow-y: scroll;
+}
+
+.feed-items li {
+    list-style: none;
+}
+
+.feed-author {
+    margin-left: 1em;
+}
+
+.feed-item {
+    margin-left: 2em;
+}
+
+.tabs {
+    width: 100%;
+}
+
+.tab-headers {
+    display: flex;
+    justify-content: space-evenly;
+    list-style: none;
+    flex-direction: row;
+}
+
+.tab-header {
+    border-bottom: 2px solid;
+}
+
+.tab-selected {
+    border-bottom: 2px solid #00F;
+}
+
+#feeds {
+    width: 100%;
+}
+
 @media only screen and (max-device-width:480px)
 {
     body {

@@ -12,7 +12,8 @@ type Route
     | PostEditor Int
     | TaggedPosts String
     | PostVersion Int Int
-    | SettingsEditor 
+    | SettingsEditor
+    | FeedReader
     | Home
     | NotFound
 
@@ -27,7 +28,8 @@ routeParser =
         , map MediaManager (s "blog" </> (s "mediamanager"))
         , map SettingsEditor (s "blog" </> (s "settings"))
         , map TaggedPosts (s "blog" </> (s "tags" </> string))
-        , map PostAdmin (s "blog" </> (s "postadmin"))]
+        , map PostAdmin (s "blog" </> (s "postadmin"))
+        , map FeedReader (s "blog" </> (s "feeds"))]
 
 url_to_route url =
             Maybe.withDefault NotFound (parse routeParser url)

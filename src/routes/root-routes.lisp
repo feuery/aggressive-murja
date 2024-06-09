@@ -118,3 +118,6 @@
 
 (defroute ddddddd ("/blog/page/:page" :method :get) ()
   *root*)
+
+(defroute sdfdsfopsf ("/blog/feeds" :method :get) ()
+  *root*)

@@ -16,6 +16,7 @@ import Button exposing (murja_button)
 topbar_list =
     [ li [] [ murja_button [ onClick GoHome, attribute "data-testid" "home"]
                   [text "Home"]]
+    , li [] [ murja_button [ onClick (PushUrl "/blog/feeds") ] [ text "RSS Feeds" ]]
     , li [] [ murja_button [ onClick (PushUrl "/blog/postadmin"), attribute "data-testid" "manage-posts-btn" ]
                   [text "Manage posts"]]
     , li [] [ murja_button [ onClick (PushUrl "/blog/mediamanager")]

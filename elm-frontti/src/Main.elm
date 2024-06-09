@@ -43,6 +43,8 @@ import Date_utils exposing (int_to_month_string)
 import UUID
 import File exposing (mime)
 
+import FeedView
+import Feeds exposing (NewFeed)
 
 -- MAIN
 
@@ -65,7 +67,7 @@ subscriptions _ = Sub.batch
                   [ tags ReceivedTag
                   , aceStateUpdate AceStateUpdate]
 
-initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc [] []
+initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc [] [] Nothing PerFeed
     
 viewStatePerUrl : Url.Url -> (ViewState, List (Cmd Msg))
 viewStatePerUrl url =
@@ -110,6 +112,9 @@ viewStatePerUrl url =
         RouteParser.SettingsEditor -> (Loading, [ getSession
                                                 , getSettingsAdmin 
                                                 , getTitles])
+        RouteParser.FeedReader -> (Loading, [ getSession
+                                            , getSettings
+                                            , getFeeds ])
     
 init _ url key =
     let (viewstate, cmds) = (viewStatePerUrl url)
@@ -563,7 +568,62 @@ update msg model =
         ClosePreviousPostPreviewModal ->
             ( model
             , closePreviousPostsModal ())
+        FeedsReceived result -> 
+            case result of
+                Ok feeds ->
+                    ( { model | view_state = Feeds feeds}
+                    , Cmd.none)
+                Err error -> 
+                    ( { model | view_state = ShowError (errToString error) }
+                    , Cmd.none)
+        SetFeedName name ->
+            let new_feed = (Maybe.withDefault (NewFeed "" "") model.new_feed)
+            in
+            ({ model
+                 | new_feed = Just { new_feed
+                                       | name = name}}
+            , Cmd.none)
+        SetFeedUrl url ->
+            let new_feed = (Maybe.withDefault (NewFeed "" "") model.new_feed)
+            in
+            ({ model
+                 | new_feed = Just { new_feed
+                                       | url = url}}
+            , Cmd.none)
+        AddFeed new_feed ->
+            ({ model
+                 | new_feed = Nothing}
+            , addFeed new_feed)
+        FeedAdded r ->
+            case r of
+                Ok _ -> 
+                    ( model
+                    , getFeeds)
+                Err error ->
+                    ( { model | view_state = ShowError (errToString error) }
+                    , Cmd.none)
+        SetPerFeedView ->
+            let state = model.feedReaderState in
+            ({ model
+                 | feedReaderState = case state of
+                                         PerFeed -> SingleFeed
+                                         SingleFeed -> PerFeed}
+            , Cmd.none)
+        SelectTab tab_id selected_tab ->
+            case tab_id of 
+                "rss-feed-tab" ->
+                    case (str_to_readerState selected_tab) of
+                        Just readerstate -> 
+                            ({ model
+                                 | feedReaderState = readerstate}
+                            , Cmd.none)
+                        Nothing ->
+                            ( model
+                            , alert <| "Unknown selected tab " ++ selected_tab)
+                _ -> ( model
+                     , alert <| "Unknown tab " ++ tab_id)
 
+                    
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings
                                    , getTitles
@@ -654,7 +714,8 @@ view model =
                                                        PostEditor.postEditor post tag_index model.showImageModal model.loadedImages model.draggingImages editorSettings settings model.zone model.loginState model.searchedPosts
                                                    Nothing -> [ div [] [ text "No post loaded" ]]
                                            MediaList -> [ medialist model.loadedImages model.medialist_state ]
-                                           SettingsEditor -> [ SettingsEditor.editor settings])
+                                           SettingsEditor -> [ SettingsEditor.editor settings]
+                                           Feeds feeds -> [ FeedView.feeds model.feedReaderState settings model.zone feeds model.new_feed ])
                         , div [id "sidebar"] [ User.loginView model.loginState
                                              , (sidebarHistory model.titles )
                                              , (case model.view_state of

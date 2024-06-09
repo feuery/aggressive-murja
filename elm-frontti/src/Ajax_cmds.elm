@@ -3,6 +3,7 @@ module Ajax_cmds exposing (..)
 import Article
 import User
 import Page
+import Feeds
 import Message exposing (..)
 import Http exposing (..)
 import Image as Image
@@ -138,3 +139,14 @@ loadPreviousArticle post_id =
     Http.get
         { url = "/api/posts/post/" ++ (String.fromInt post_id)
         , expect = Http.expectJson PreviousPostReceived Article.articleDecoder}
+
+getFeeds =
+    Http.get
+        { url = "/api/user/feeds"
+        , expect = Http.expectJson FeedsReceived (Json.list Feeds.feedDecoder)}
+
+addFeed newFeed =
+    Http.post
+        { url = "/api/user/feeds"
+        , body = Http.jsonBody (Feeds.newFeedEncoder newFeed)
+        , expect = Http.expectWhatever FeedAdded }
