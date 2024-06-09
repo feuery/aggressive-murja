@@ -335,6 +335,10 @@ header {
     border-bottom: 2px solid #00F;
 }
 
+#feeds {
+    width: 100%;
+}
+
 @media only screen and (max-device-width:480px)
 {
     body {
