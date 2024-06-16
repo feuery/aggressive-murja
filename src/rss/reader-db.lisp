@@ -3,7 +3,7 @@
   (:import-from :halisql :defqueries)
   (:import-from :lisp-fixup :partial :compose)
   (:import-from :cl-date-time-parser :parse-date-time)
-  (:export :get-user-feeds :subscribe-to-feed :mark-as-read :delete-feed))
+  (:export :*updates* :get-user-feeds :subscribe-to-feed :mark-as-read :delete-feed))
 	
 (in-package :murja.rss.reader-db)
 
@@ -92,7 +92,12 @@ pipes it through trivial-utf-8:utf-8-bytes-to-string"
   (multiple-value-bind (second minute hour) (decode-universal-time (get-universal-time))
     hour))
 
+(defun current-datetime ()
+  (multiple-value-bind (second minute hour day month year) (decode-universal-time (get-universal-time))
+    (format nil "~d-~2,'0d-~2,'0dT~2,'0d:~2,'0d:~2,'0dZ" year month day hour minute second)))
+
 (defvar *last-updated* nil)
+(defvar *updates* nil)
 
 (defun update-feeds ()
   (setf *last-updated* nil)
@@ -103,4 +108,5 @@ pipes it through trivial-utf-8:utf-8-bytes-to-string"
     (dolist (feed (coerce (get-all-feeds) 'list))
       (update-feed feed))
 
-    (setf *last-updated* (current-hour))))
+    (setf *last-updated* (current-hour))
+    (push (current-datetime) *updates*)))

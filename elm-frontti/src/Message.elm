@@ -90,7 +90,8 @@ type alias Model =
     , titles : List Article.Title
     , searchedPosts : List Article.PreviousArticle
     , new_feed: Maybe Feeds.NewFeed
-    , feedReaderState: FeedReaderState}
+    , feedReaderState: FeedReaderState
+    , feedMetadata: Maybe Feeds.FeedMetadata}
     
 type Msg
   = PageReceived (Result Http.Error P.Page)
@@ -169,6 +170,7 @@ type Msg
   | FeedItemReadResponse (Result Http.Error ())
   | DeleteFeed UUID
   | FeedDeleted (Result Http.Error ())
+  | FeedMetaReceived (Result Http.Error Feeds.FeedMetadata)
 
 -- ports
 port reallySetupAce : String -> Cmd msg

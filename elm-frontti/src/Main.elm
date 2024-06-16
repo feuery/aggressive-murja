@@ -67,7 +67,7 @@ subscriptions _ = Sub.batch
                   [ tags ReceivedTag
                   , aceStateUpdate AceStateUpdate]
 
-initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc [] [] Nothing PerFeed
+initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc [] [] Nothing PerFeed Nothing
     
 viewStatePerUrl : Url.Url -> (ViewState, List (Cmd Msg))
 viewStatePerUrl url =
@@ -114,7 +114,8 @@ viewStatePerUrl url =
                                                 , getTitles])
         RouteParser.FeedReader -> (Loading, [ getSession
                                             , getSettings
-                                            , getFeeds ])
+                                            , getFeeds
+                                            , getFeedMeta ])
     
 init _ url key =
     let (viewstate, cmds) = (viewStatePerUrl url)
@@ -665,6 +666,15 @@ update msg model =
                 Err error -> ( { model | view_state = ShowError (errToString error) }
                              , Cmd.none)
 
+        FeedMetaReceived result ->
+            case result of
+                Ok metadata ->
+                    ({ model
+                         | feedMetadata = Just metadata}
+                    , Cmd.none)
+                Err error -> ( { model | view_state = ShowError (errToString error) }
+                             , Cmd.none)
+
                     
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings
@@ -757,7 +767,7 @@ view model =
                                                    Nothing -> [ div [] [ text "No post loaded" ]]
                                            MediaList -> [ medialist model.loadedImages model.medialist_state ]
                                            SettingsEditor -> [ SettingsEditor.editor settings]
-                                           Feeds feeds show_archived -> [ FeedView.feeds model.feedReaderState show_archived settings model.zone feeds model.new_feed ])
+                                           Feeds feeds show_archived -> [ FeedView.feeds model.feedReaderState show_archived settings model.zone feeds model.new_feed model.feedMetadata])
                         , div [id "sidebar"] [ User.loginView model.loginState
                                              , (sidebarHistory model.titles )
                                              , (case model.view_state of

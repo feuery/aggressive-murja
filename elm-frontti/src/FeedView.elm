@@ -62,7 +62,7 @@ readerState_str state =
         SingleFeed -> "SingleFeed"
         FeedManager -> "FeedManager"
                              
-feeds feedReaderState show_archived settings zone fs new_feed  =
+feeds feedReaderState show_archived settings zone fs new_feed metadata =
     let new_feed_state = Maybe.withDefault (NewFeed "" "") new_feed
     in
         div [ id "feeds" ] 
@@ -90,4 +90,11 @@ feeds feedReaderState show_archived settings zone fs new_feed  =
                     , onInput SetFeedUrl
                     , value new_feed_state.url
                     , type_ "text"] []
-            , murja_button [ onClick (AddFeed new_feed_state)] [ text "Add a feed"]]
+            , murja_button [ onClick (AddFeed new_feed_state)] [ text "Add a feed"]
+            , case metadata of
+                  Just meta -> 
+                      details [] [ summary [] [ text "Latest feed updates at: "]
+                                 , ul []
+                                     (  meta.last_update_timestamps
+                                     |> List.map (\timestamp -> li [] [ text timestamp]))]
+                  Nothing -> text "Metadata didn't load"]

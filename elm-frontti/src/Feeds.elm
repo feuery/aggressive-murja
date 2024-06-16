@@ -36,6 +36,16 @@ type alias NewFeed =
     { name: String 
     , url: String}
 
+type alias FeedMetadata =
+    { last_update_timestamps: List String}
+
+-- metadata decoder
+
+metadataDecoder = Decode.succeed FeedMetadata
+                |> decodeApply (Decode.field "last-update-timestamps" (Decode.list Decode.string))
+        
+-- feedDecoder
+
 creatorDecoder = Decode.field "creator" Creator.creatorDecoder
 urlDecoder = Decode.field "url" Decode.string
 nameDecoder = (Decode.field "name" Decode.string)

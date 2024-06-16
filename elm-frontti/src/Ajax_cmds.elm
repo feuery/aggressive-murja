@@ -166,3 +166,8 @@ deleteFeed feed_id =
         , body = Http.emptyBody
         , timeout = Nothing
         , tracker = Nothing}
+
+getFeedMeta =
+    Http.get
+        { url = "/api/user/feeds/meta"
+        , expect = Http.expectJson FeedMetaReceived Feeds.metadataDecoder}
