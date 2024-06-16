@@ -20,7 +20,10 @@ type alias Item =
     , description: String 
     , link: String
     , author: String
-    , pubdate: Time.Posix} 
+    , pubdate: Time.Posix
+    , is_read: Bool
+    -- parent id that's required for ui to function correctly 
+    , feed_id: Maybe UUID} 
 
 type alias Feed =
     { id: UUID
@@ -45,6 +48,7 @@ descriptionDecoder = Decode.field "description" Decode.string
 linkDecoder = Decode.field "link" Decode.string
 authorDecoder = Decode.field "author" Decode.string
 pubdateDecoder = Decode.field "pubdate" Extra.iso8601
+is_readDecoder = Decode.field "is_read" Decode.bool
 
 itemDecoder =
     Decode.succeed Item
@@ -55,6 +59,8 @@ itemDecoder =
         |> decodeApply linkDecoder
         |> decodeApply authorDecoder
         |> decodeApply pubdateDecoder
+        |> decodeApply is_readDecoder
+        |> decodeApply (Decode.succeed Nothing)
 
 itemsDecoder =
     Decode.field "items" (Decode.list itemDecoder)

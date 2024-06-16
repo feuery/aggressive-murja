@@ -571,7 +571,7 @@ update msg model =
         FeedsReceived result -> 
             case result of
                 Ok feeds ->
-                    ( { model | view_state = Feeds feeds}
+                    ( { model | view_state = Feeds feeds False}
                     , Cmd.none)
                 Err error -> 
                     ( { model | view_state = ShowError (errToString error) }
@@ -629,6 +629,38 @@ update msg model =
                     , Cmd.none)
                 _ -> ( model
                      , alert <| "Unknown tab " ++ tab_id)
+        ReadFeedItem feed_id item_id is_read ->
+            case model.view_state of
+                Feeds feeds show_archived ->
+                    let new_feeds = (  feeds
+                                    |> List.map (\f -> if f.id == feed_id then
+                                                           {f | items = (  f.items
+                                                                        |> List.map (\item ->
+                                                                                         if item.id == item_id then
+                                                                                             {item | is_read = is_read}
+                                                                                         else
+                                                                                             item ))}
+                                                       else
+                                                           f))
+                    in
+                        ({ model | view_state = Feeds new_feeds show_archived}
+                        , markFeedItemRead (UUID.toString feed_id) (UUID.toString item_id))
+                _ -> ( model
+                     , Cmd.none)
+        ShowArchivedFeedItems showArchived ->
+            case model.view_state of
+                Feeds feeds _ -> 
+                    ({ model
+                         | view_state = Feeds feeds showArchived}
+                    , Cmd.none)
+                _ -> ( model
+                     , Cmd.none)
+        FeedItemReadResponse result ->
+            case result of
+                Ok _ -> ( model
+                        , Cmd.none)
+                Err error -> ( { model | view_state = ShowError (errToString error) }
+                             , Cmd.none)
 
                     
 doGoHome_ model other_cmds =
@@ -722,7 +754,7 @@ view model =
                                                    Nothing -> [ div [] [ text "No post loaded" ]]
                                            MediaList -> [ medialist model.loadedImages model.medialist_state ]
                                            SettingsEditor -> [ SettingsEditor.editor settings]
-                                           Feeds feeds -> [ FeedView.feeds model.feedReaderState settings model.zone feeds model.new_feed ])
+                                           Feeds feeds show_archived -> [ FeedView.feeds model.feedReaderState show_archived settings model.zone feeds model.new_feed ])
                         , div [id "sidebar"] [ User.loginView model.loginState
                                              , (sidebarHistory model.titles )
                                              , (case model.view_state of

@@ -31,6 +31,13 @@
     (setf (hunchentoot:return-code*) 204)
     ""))
 
+(defroute mark-as-read ("/api/user/feeds/:feed-id/:item-id/mark-read" :method :post
+								      :decorators (@transaction
+										   @authenticated)) ()
+  (murja.rss.reader-db:mark-as-read item-id feed-id (gethash "id" *user*))
+  (setf (hunchentoot:return-code*) 204)
+  "")
+
 ;; This will be called by cron/curl
 (defroute update-feeds-rotue ("/api/rss/update" :method :get
 						:decorators (@transaction)) ()

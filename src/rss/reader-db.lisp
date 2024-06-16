@@ -3,7 +3,7 @@
   (:import-from :halisql :defqueries)
   (:import-from :lisp-fixup :partial :compose)
   (:import-from :cl-date-time-parser :parse-date-time)
-  (:export :get-user-feeds :subscribe-to-feed))
+  (:export :get-user-feeds :subscribe-to-feed :mark-as-read))
 	
 (in-package :murja.rss.reader-db)
 
@@ -15,10 +15,22 @@
   hashmap)
 
 (defun get-user-feeds (user-id)
-  (let ((feeds (coerce (get-user-feeds* user-id) 'list)))
-    (mapcar (compose (partial #'parse "items")
-		     (partial #'parse "creator"))
-	    feeds)))
+  (let* ((feeds (coerce (get-user-feeds* user-id) 'list))
+	 (fixed-feeds
+	   (mapcar (compose (partial #'parse "items")
+			    (partial #'parse "creator"))
+		   feeds)))
+    (dolist (feed fixed-feeds)
+      (setf (gethash "items" feed)
+	    (coerce (gethash "items" feed) 'list))
+      (dolist (item (gethash "items" feed))
+        (setf (gethash "is_read" item)
+	      (not (equalp 'NULL (gethash "read_at" item))))
+
+	;; frontend doesn't need this
+	(remhash "read_at" item)))
+
+    fixed-feeds))
 
 (defun subscribe-to-feed (feed-name feed-url owner)
   (insert-feed feed-name feed-url (gethash "id" owner)))

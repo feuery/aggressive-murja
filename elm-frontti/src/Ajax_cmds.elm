@@ -150,3 +150,9 @@ addFeed newFeed =
         { url = "/api/user/feeds"
         , body = Http.jsonBody (Feeds.newFeedEncoder newFeed)
         , expect = Http.expectWhatever FeedAdded }
+
+markFeedItemRead feed_id item_id =
+    Http.post
+        { url = "/api/user/feeds/" ++ feed_id ++ "/" ++ item_id ++ "/mark-read"
+        , body = Http.emptyBody
+        , expect = Http.expectWhatever FeedItemReadResponse}

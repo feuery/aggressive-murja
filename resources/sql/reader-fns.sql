@@ -32,3 +32,13 @@ INSERT INTO blog.feed_subscription(name, url, owner) VALUES ($1, $2, $3);
 -- name: insert-feed-item @execute
 INSERT INTO blog.feed_item(title, link, description, author, pubdate, feed)
 VALUES ($1, $2, $3, $4, to_timestamp($5), $6);
+
+-- name: mark-as-read
+UPDATE blog.feed_item fi 
+SET read_at = now()
+FROM blog.feed_subscription fs
+WHERE fs.id = fi.feed
+      AND fi.id = $1
+      AND fi.feed = $2
+      AND fs.owner = $3
+RETURNING *;

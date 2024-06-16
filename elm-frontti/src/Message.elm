@@ -30,7 +30,7 @@ type ViewState
     | MediaList                     -- list all the image blobs in db
     | TaggedPostsView (List Article.Article)
     | SettingsEditor
-    | Feeds (List Feeds.Feed)
+    | Feeds (List Feeds.Feed) Bool -- <- show_archived?
       
 type alias User =
     { username : String
@@ -163,6 +163,9 @@ type Msg
   | FeedAdded (Result Http.Error ())
   | SetPerFeedView
   | SelectTab String String
+  | ReadFeedItem UUID UUID Bool
+  | ShowArchivedFeedItems Bool
+  | FeedItemReadResponse (Result Http.Error ())
 
 -- ports
 port reallySetupAce : String -> Cmd msg
