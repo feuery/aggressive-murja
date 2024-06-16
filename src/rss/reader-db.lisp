@@ -44,7 +44,7 @@
 (can't find the documentation about this logic) whims. This function performs
 the http-request through drakma, checks which is returned, and in case of array<byte>s,
 pipes it through trivial-utf-8:utf-8-bytes-to-string"
-  (let ((result (drakma:http-request url)))
+  (let ((result (drakma:http-request url :user-agent "drakma / murja-blog-engine rss updater")))
     (if (and (arrayp result)
 	     (not (stringp result)))
 	(trivial-utf-8:utf-8-bytes-to-string result)
