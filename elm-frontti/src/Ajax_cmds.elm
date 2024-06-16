@@ -156,3 +156,13 @@ markFeedItemRead feed_id item_id =
         { url = "/api/user/feeds/" ++ feed_id ++ "/" ++ item_id ++ "/mark-read"
         , body = Http.emptyBody
         , expect = Http.expectWhatever FeedItemReadResponse}
+
+deleteFeed feed_id =
+    Http.request
+        { url = "/api/user/feeds/" ++ feed_id
+        , method = "DELETE"
+        , headers = []
+        , expect = Http.expectWhatever FeedDeleted
+        , body = Http.emptyBody
+        , timeout = Nothing
+        , tracker = Nothing}

@@ -602,13 +602,6 @@ update msg model =
                 Err error ->
                     ( { model | view_state = ShowError (errToString error) }
                     , Cmd.none)
-        SetPerFeedView ->
-            let state = model.feedReaderState in
-            ({ model
-                 | feedReaderState = case state of
-                                         PerFeed -> SingleFeed
-                                         SingleFeed -> PerFeed}
-            , Cmd.none)
         SelectTab tab_id selected_tab ->
             case tab_id of 
                 "rss-feed-tab" ->
@@ -627,6 +620,7 @@ update msg model =
                                                        | show_preview = selected_tab == "PreviewArticle"})
                            model.postEditorSettings}
                     , Cmd.none)
+                
                 _ -> ( model
                      , alert <| "Unknown tab " ++ tab_id)
         ReadFeedItem feed_id item_id is_read ->
@@ -659,6 +653,15 @@ update msg model =
             case result of
                 Ok _ -> ( model
                         , Cmd.none)
+                Err error -> ( { model | view_state = ShowError (errToString error) }
+                             , Cmd.none)
+        DeleteFeed id ->
+            ( model 
+            , deleteFeed <| UUID.toString id)
+        FeedDeleted result ->
+            case result of 
+                Ok _ -> ( model
+                        , getFeeds)
                 Err error -> ( { model | view_state = ShowError (errToString error) }
                              , Cmd.none)
 

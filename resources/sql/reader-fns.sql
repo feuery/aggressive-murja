@@ -10,9 +10,14 @@ SELECT fs.id, fs.name, fs.url,
        json_agg(row_to_json(fi.*)) as "items"
 FROM blog.feed_subscription fs
 JOIN blog.Users u ON u.ID = fs.owner
-JOIN blog.feed_item fi ON fs.id = fi.feed
+LEFT JOIN blog.feed_item fi ON fs.id = fi.feed
 WHERE owner = $1
-GROUP BY fs.id, u.username, u.nickname, u.img_location;
+GROUP BY fs.id, u.username, u.nickname, u.img_location
+ORDER BY fs.name;
+
+-- name: delete-feed
+DELETE FROM blog.feed_subscription
+WHERE id = $1 AND owner = $2;
 
 -- name: get-all-feeds 
 -- returns: :array-hash 

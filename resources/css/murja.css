@@ -341,6 +341,20 @@ header {
     width: 100%;
 }
 
+.feed-manager-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    list-style: none;
+}
+
+.feed-manager {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    /* border: 2px solid #333; */
+}
+
 @media only screen and (max-device-width:480px)
 {
     body {

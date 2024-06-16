@@ -38,6 +38,13 @@
   (setf (hunchentoot:return-code*) 204)
   "")
 
+(defroute delete-feed ("/api/user/feeds/:feed-id" :method :delete
+						  :decorators (@transaction
+							       @authenticated)) ()
+  (murja.rss.reader-db:delete-feed feed-id (gethash "id" *user*))
+  (setf (hunchentoot:return-code*) 204)
+  "")
+
 ;; This will be called by cron/curl
 (defroute update-feeds-rotue ("/api/rss/update" :method :get
 						:decorators (@transaction)) ()

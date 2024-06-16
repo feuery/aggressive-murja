@@ -3,7 +3,7 @@
   (:import-from :halisql :defqueries)
   (:import-from :lisp-fixup :partial :compose)
   (:import-from :cl-date-time-parser :parse-date-time)
-  (:export :get-user-feeds :subscribe-to-feed :mark-as-read))
+  (:export :get-user-feeds :subscribe-to-feed :mark-as-read :delete-feed))
 	
 (in-package :murja.rss.reader-db)
 
@@ -23,12 +23,16 @@
     (dolist (feed fixed-feeds)
       (setf (gethash "items" feed)
 	    (coerce (gethash "items" feed) 'list))
-      (dolist (item (gethash "items" feed))
-        (setf (gethash "is_read" item)
-	      (not (equalp 'NULL (gethash "read_at" item))))
+      
+      (if (equalp (list 'null) (gethash "items" feed))
+	  (setf (gethash "items" feed) #())
+	  
+	  (dolist (item (gethash "items" feed))
+            (setf (gethash "is_read" item)
+		  (not (equalp 'NULL (gethash "read_at" item))))
 
-	;; frontend doesn't need this
-	(remhash "read_at" item)))
+	    ;; frontend doesn't need this
+	    (remhash "read_at" item))))
 
     fixed-feeds))
 

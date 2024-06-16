@@ -66,11 +66,13 @@ type alias PostEditorSettings =
 type FeedReaderState
     = PerFeed
     | SingleFeed
+    | FeedManager 
       
 str_to_readerState str =
     case str of
         "PerFeed" -> Just PerFeed
         "SingleFeed" -> Just SingleFeed
+        "FeedManager" -> Just FeedManager
         _ -> Nothing
              
 type alias Model =
@@ -161,11 +163,12 @@ type Msg
   | SetFeedName String
   | AddFeed Feeds.NewFeed
   | FeedAdded (Result Http.Error ())
-  | SetPerFeedView
   | SelectTab String String
   | ReadFeedItem UUID UUID Bool
   | ShowArchivedFeedItems Bool
   | FeedItemReadResponse (Result Http.Error ())
+  | DeleteFeed UUID
+  | FeedDeleted (Result Http.Error ())
 
 -- ports
 port reallySetupAce : String -> Cmd msg

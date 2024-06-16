@@ -11,6 +11,7 @@ import Html.Events exposing (onInput, onClick)
 import Button exposing (murja_button)
 import UUID
 import Article_view exposing (formatDateTime)
+import FeedManager exposing (feedmanager)
 import Tab exposing (tabs)
 
 import Random
@@ -59,6 +60,7 @@ readerState_str state =
     case state of
         PerFeed -> "PerFeed"
         SingleFeed -> "SingleFeed"
+        FeedManager -> "FeedManager"
                              
 feeds feedReaderState show_archived settings zone fs new_feed  =
     let new_feed_state = Maybe.withDefault (NewFeed "" "") new_feed
@@ -70,9 +72,11 @@ feeds feedReaderState show_archived settings zone fs new_feed  =
                        , text "Show read items"]
             , tabs "rss-feed-tab" (readerState_str feedReaderState)
                   (Dict.fromList [ ("PerFeed", "Group by feed")
-                                 , ("SingleFeed", "Show all in a feed")])
+                                 , ("SingleFeed", "Show all in a feed")
+                                 , ("FeedManager", "Manage feeds")])
                   (Dict.fromList [ ("PerFeed", perFeedView show_archived settings zone fs new_feed_state)
-                                 , ("SingleFeed", singleFeedView show_archived settings zone fs)])
+                                 , ("SingleFeed", singleFeedView show_archived settings zone fs)
+                                 , ("FeedManager", feedmanager fs)])
                   
             , h3 [] [ text "Add new feed?"]
             , label [ for "name" ] [ text "Feed name" ]
