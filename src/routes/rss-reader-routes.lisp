@@ -26,7 +26,8 @@
 								@authenticated)) ()
   (let ((result (make-hash-table :test 'equal)))
     (setf (gethash "last-update-timestamps" result)
-	  murja.rss.reader-db:*updates*)
+	  (or murja.rss.reader-db:*updates*
+	      #()))
     (com.inuoe.jzon:stringify result)))
 
 (defroute user-feeds-saving ("/api/user/feeds"
