@@ -61,12 +61,8 @@ pipes it through trivial-utf-8:utf-8-bytes-to-string"
     xmls:node-children
     first))
 
-(defun update-feed (feed)
-  (let* ((url (gethash "url" feed))
-	 (feed-id (gethash "id" feed))
-	 (feed-contents (download url))
-	 (feed-parsed (xmls:parse feed-contents))
-	 (channel (first (xmls:node-children feed-parsed))))
+(defun parse-rss (feed-id feed-parsed)
+  (let ((channel (first (xmls:node-children feed-parsed))))
     (dolist (item (remove-if-not (lambda (item)
 				   (string= (xmls:node-name item) "item"))
 				 (xmls:node-children channel)))
@@ -83,6 +79,35 @@ pipes it through trivial-utf-8:utf-8-bytes-to-string"
 		  (get-child-item-value "pubDate" (xmls:node-children item))
 		  pubdate)
 	(insert-feed-item title link description author pubDate feed-id)))))
+
+(defun parse-atom (author feed-id feed-parsed)
+  (let ((entries (->>
+		   feed-parsed
+		   (xmls:node-children)
+		   (remove-if-not (lambda (node)
+				    (string= (xmls:node-name node) "entry"))))))
+    (dolist (entry entries)
+      (let ((title (or (get-child-item-value "title" (xmls:node-children entry)) ""))
+	    (link (get-child-item-value "id" (xmls:node-children entry))) ;; atom calls hrefs 'id'
+	    (description (get-child-item-value "content" (xmls:node-children entry)))
+	    (pubDate (cl-epoch:universal->unix-time
+		      (parse-date-time (get-child-item-value "updated" (xmls:node-children entry))))))
+
+	(log:info "Inserting ~a~%" (list :title title :link link :description description :author author :pubDate pubDate :feed-id feed-id))
+	(insert-feed-item title link description author pubDate feed-id)))))
+
+(defun update-feed (feed)
+  (let* ((url (gethash "url" feed))
+	 (feed-id (gethash "id" feed))
+	 (feed-contents (download url))
+	 (feed-parsed (xmls:parse feed-contents))
+	 (feed-ns (xmls:node-ns feed-parsed)))
+
+    (if (cl-ppcre:all-matches-as-strings "Atom" feed-ns)
+	(let ((author (first (xmls:node-children
+			      (get-child-item-value "author" (xmls:node-children feed-parsed))))))
+	  (parse-atom author feed-id feed-parsed))
+	(parse-rss feed-id feed-parsed))))
 
 (defun current-hour ()
   (multiple-value-bind (second minute hour) (decode-universal-time (get-universal-time))
