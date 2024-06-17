@@ -35,8 +35,8 @@ JOIN blog.Users u ON u.ID = fs.owner;
 INSERT INTO blog.feed_subscription(name, url, owner) VALUES ($1, $2, $3);
 
 -- name: insert-feed-item @execute
-INSERT INTO blog.feed_item(title, link, description, author, pubdate, feed)
-VALUES ($1, $2, $3, $4, to_timestamp($5), $6);
+INSERT INTO blog.feed_item(title, link, description, author, pubdate, pubdate_raw, feed)
+VALUES ($1, $2, $3, $4, to_timestamp($5), $5, $6);
 
 -- name: mark-as-read
 UPDATE blog.feed_item fi 
