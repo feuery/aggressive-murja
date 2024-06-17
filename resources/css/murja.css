@@ -81,11 +81,11 @@ html, body {
 .page {
     flex: 8 1;
     bottom: 0;
-
-
     display: flex;
     flex-flow: row wrap;
     align-content: flex-start;
+    width: 100%;
+    max-width: 100%;
 }
 
 .post {

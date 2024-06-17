@@ -29,6 +29,7 @@ feed_item time_format zone item =
                          button [ onClick <| ReadFeedItem feed_id item.id (not is_read) ] [ text "Mark as read"]]
                   , div [ class "feed-author"] [ text <| "By " ++ item.author]
                   , div [ class "feed-item"
+                        -- this is a bit moronic xss vuln, I should research how others have sanitized the html from rss/atom feeds 
                         , dangerouslySetInnerHTML item.description] []]
         Nothing ->
             li [] [ text "Unknown feed" ]
