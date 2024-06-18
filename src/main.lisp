@@ -7,8 +7,25 @@
 
 (in-package :murja)
 
-(defvar *server* nil)
-(setf hunchentoot:*catch-errors-p* nil)
+;; (setf hunchentoot:*catch-errors-p* nil)
+
+(cl-advice:make-advisable 'hunchentoot:set-cookie)
+(cl-advice:add-advice :around
+		      'hunchentoot:set-cookie
+		      (lambda (next-fn name &key (value "") expires max-age path domain secure http-only (reply hunchentoot:*reply*))
+			(let ((session-cookie? (string= name "hunchentoot-session")))
+			  (funcall next-fn
+				     name
+				     :value value
+				     :expires expires
+				     :max-age (if session-cookie?
+						  31536666
+						  max-age)
+				     :path path
+				     :domain domain
+				     :secure secure
+				     :http-only http-only
+				     :reply reply))))
 
 (defun start-server (&key (port 3010))
   (format t "Starting murja server~%")
