@@ -571,7 +571,14 @@ update msg model =
             , closePreviousPostsModal ())
         FeedsReceived result -> 
             case result of
-                Ok feeds ->
+                Ok fs ->
+                    let feeds = (  fs
+                                |> List.sortBy (\f -> (  f.items
+                                                      |> List.map (Time.posixToMillis << .pubdate)
+                                                      |> List.minimum
+                                                      |> Maybe.withDefault 999))
+                                |> List.reverse) 
+                    in
                     case model.view_state of
                         Feeds _ archived -> 
                             ( { model | view_state = Feeds feeds archived}
