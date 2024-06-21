@@ -30,8 +30,6 @@
 	(let ((usrs (coerce (postmodern:query "SELECT * FROM blog.Users" :alists) 'list)))
 	  (unless usrs
 	    (log:error "There are no users in the db"))
-	  
-	  (log:warn "login failed with params ~a, ~a. Users in db: ~{~a~%~}" username password-sha usrs)
 	  nil))))
 
 (defun register-user (username nickname img-location password)
