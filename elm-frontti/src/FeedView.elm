@@ -45,15 +45,17 @@ perFeedView settings zone fs new_feed_state =
     ul [ class "feed-list" ]
         (List.map (\feed ->
                        li [ class "feed" ]
-                       [ header [] [ text feed.name ]
+                       [ header [] [ text <| feed.name ++ " (" ++ (String.fromInt (List.length feed.items)) ++ ")" ]
                        , a [ href feed.url ] [ text feed.url ]
                        , ul [ class "feed-items" ]
                            (correctlySortedFeedItemList settings zone <| List.map (\i -> { i | feed_id = Just feed.id}) feed.items)]) fs)
             
 singleFeedView settings zone fs =
-    let final_feed = List.concatMap (\feed -> List.map (\item -> { item | feed_id = Just feed.id}) feed.items) fs in 
-    ul [ class "feed-items" ]
-        (correctlySortedFeedItemList settings zone final_feed)
+    let final_feed = List.concatMap (\feed -> List.map (\item -> { item | feed_id = Just feed.id}) feed.items) fs in
+    div []
+        [ header [] [ text <| (String.fromInt (List.length final_feed)) ++ " unread articles"  ]
+        , ul [ class "feed-items" ]
+            (correctlySortedFeedItemList settings zone final_feed)]
               
 
 readerState_str state =
