@@ -78,7 +78,7 @@ feeds feedReaderState show_archived settings zone fs new_feed metadata =
                                  , ("FeedManager", "Manage feeds")])
                   (Dict.fromList [ ("PerFeed", perFeedView settings zone fs new_feed_state)
                                  , ("SingleFeed", singleFeedView settings zone fs)
-                                 , ("FeedManager", feedmanager fs)])
+                                 , ("FeedManager", feedmanager settings.time_format zone fs)])
                   
             , h3 [] [ text "Add new feed?"]
             , label [ for "name" ] [ text "Feed name" ]
