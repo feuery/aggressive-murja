@@ -10,7 +10,7 @@ SELECT fs.id, fs.name, fs.url,
        json_agg(row_to_json(fi.*)) as "items"
 FROM blog.feed_subscription fs
 JOIN blog.Users u ON u.ID = fs.owner
-LEFT JOIN blog.feed_item fi ON (fs.id = fi.feed AND (read_at is null OR $2))
+LEFT JOIN blog.feed_item fi ON (fs.id = fi.feed AND (read_at is null OR $2) AND fi.pubdate <= now())
 WHERE owner = $1
 GROUP BY fs.id, u.username, u.nickname, u.img_location
 ORDER BY fs.name;
