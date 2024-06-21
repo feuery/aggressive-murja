@@ -34,27 +34,26 @@ feed_item time_format zone item =
         Nothing ->
             li [] [ text "Unknown feed" ]
 
-correctlySortedFeedItemList show_archived settings zone items = 
+correctlySortedFeedItemList settings zone items = 
     (  items
     |> List.sortBy (Time.posixToMillis << .pubdate)
     |> List.reverse
-    |> List.filter (\item -> (not item.is_read) || show_archived)
     |> List.map (feed_item settings.time_format zone))
 
 -- fs = feeds, elm sucks balls at shadowing
-perFeedView show_archived settings zone fs new_feed_state = 
+perFeedView settings zone fs new_feed_state = 
     ul [ class "feed-list" ]
         (List.map (\feed ->
                        li [ class "feed" ]
                        [ header [] [ text feed.name ]
                        , a [ href feed.url ] [ text feed.url ]
                        , ul [ class "feed-items" ]
-                           (correctlySortedFeedItemList show_archived settings zone <| List.map (\i -> { i | feed_id = Just feed.id}) feed.items)]) fs)
+                           (correctlySortedFeedItemList settings zone <| List.map (\i -> { i | feed_id = Just feed.id}) feed.items)]) fs)
             
-singleFeedView show_archived settings zone fs =
+singleFeedView settings zone fs =
     let final_feed = List.concatMap (\feed -> List.map (\item -> { item | feed_id = Just feed.id}) feed.items) fs in 
     ul [ class "feed-items" ]
-        (correctlySortedFeedItemList show_archived settings zone final_feed)
+        (correctlySortedFeedItemList settings zone final_feed)
               
 
 readerState_str state =
@@ -75,8 +74,8 @@ feeds feedReaderState show_archived settings zone fs new_feed metadata =
                   (Dict.fromList [ ("PerFeed", "Group by feed")
                                  , ("SingleFeed", "Show all in a feed")
                                  , ("FeedManager", "Manage feeds")])
-                  (Dict.fromList [ ("PerFeed", perFeedView show_archived settings zone fs new_feed_state)
-                                 , ("SingleFeed", singleFeedView show_archived settings zone fs)
+                  (Dict.fromList [ ("PerFeed", perFeedView settings zone fs new_feed_state)
+                                 , ("SingleFeed", singleFeedView settings zone fs)
                                  , ("FeedManager", feedmanager fs)])
                   
             , h3 [] [ text "Add new feed?"]

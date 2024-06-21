@@ -114,7 +114,7 @@ viewStatePerUrl url =
                                                 , getTitles])
         RouteParser.FeedReader -> (Loading, [ getSession
                                             , getSettings
-                                            , getFeeds
+                                            , getFeeds False 
                                             , getFeedMeta ])
     
 init _ url key =
@@ -572,8 +572,13 @@ update msg model =
         FeedsReceived result -> 
             case result of
                 Ok feeds ->
-                    ( { model | view_state = Feeds feeds False}
-                    , Cmd.none)
+                    case model.view_state of
+                        Feeds _ archived -> 
+                            ( { model | view_state = Feeds feeds archived}
+                            , Cmd.none)
+                        _ ->
+                            ( { model | view_state = Feeds feeds False}
+                            , Cmd.none)
                 Err error -> 
                     ( { model | view_state = ShowError (errToString error) }
                     , Cmd.none)
@@ -597,9 +602,13 @@ update msg model =
             , addFeed new_feed)
         FeedAdded r ->
             case r of
-                Ok _ -> 
-                    ( model
-                    , getFeeds)
+                Ok _ ->
+                    case model.view_state of
+                        Feeds _ archived -> 
+                            ( model
+                            , getFeeds archived)
+                        _ -> ( model
+                             , Cmd.none)
                 Err error ->
                     ( { model | view_state = ShowError (errToString error) }
                     , Cmd.none)
@@ -647,7 +656,7 @@ update msg model =
                 Feeds feeds _ -> 
                     ({ model
                          | view_state = Feeds feeds showArchived}
-                    , Cmd.none)
+                    , getFeeds showArchived)
                 _ -> ( model
                      , Cmd.none)
         FeedItemReadResponse result ->
@@ -661,8 +670,14 @@ update msg model =
             , deleteFeed <| UUID.toString id)
         FeedDeleted result ->
             case result of 
-                Ok _ -> ( model
-                        , getFeeds)
+                Ok _ ->
+                    case model.view_state of
+                        Feeds _ archived ->
+                            ( model
+                            , getFeeds archived)
+                        _ ->
+                            ( model
+                            , Cmd.none)
                 Err error -> ( { model | view_state = ShowError (errToString error) }
                              , Cmd.none)
 

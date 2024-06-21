@@ -13,12 +13,14 @@
 			    :method :get
 			    :decorators (@json
 					 @transaction
-					 @authenticated)) ()
-  (assert (not (null *user*)))
-  (assert (not (null (gethash "id" *user*))))
-	  
-  (let ((feeds (or (get-user-feeds (gethash "id" *user*)) #())))
-    (com.inuoe.jzon:stringify feeds)))
+					 @authenticated))
+    (&get archived)
+  (let ((archived (string= archived "archived")))
+    (assert (not (null *user*)))
+    (assert (not (null (gethash "id" *user*))))
+    
+    (let ((feeds (or (get-user-feeds (gethash "id" *user*) archived) #())))
+      (com.inuoe.jzon:stringify feeds))))
 
 (defroute updater-metadata ("/api/user/feeds/meta" :method :get
 						   :decorators (@json

@@ -140,9 +140,12 @@ loadPreviousArticle post_id =
         { url = "/api/posts/post/" ++ (String.fromInt post_id)
         , expect = Http.expectJson PreviousPostReceived Article.articleDecoder}
 
-getFeeds =
+getFeeds archived =
     Http.get
-        { url = "/api/user/feeds"
+        { url = if archived then
+                    "/api/user/feeds?archived=archived"
+              else
+                  "/api/user/feeds"
         , expect = Http.expectJson FeedsReceived (Json.list Feeds.feedDecoder)}
 
 addFeed newFeed =

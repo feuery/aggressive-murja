@@ -14,8 +14,8 @@
 	(com.inuoe.jzon:parse (gethash key hashmap)))
   hashmap)
 
-(defun get-user-feeds (user-id)
-  (let* ((feeds (coerce (get-user-feeds* user-id) 'list))
+(defun get-user-feeds (user-id archived?)
+  (let* ((feeds (coerce (get-user-feeds* user-id archived?) 'list))
 	 (fixed-feeds
 	   (mapcar (compose (partial #'parse "items")
 			    (partial #'parse "creator"))
