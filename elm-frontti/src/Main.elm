@@ -45,6 +45,7 @@ import File exposing (mime)
 
 import FeedView
 import Feeds exposing (NewFeed)
+import Tab exposing (..)
 
 -- MAIN
 
@@ -637,7 +638,6 @@ update msg model =
                                                        | show_preview = selected_tab == "PreviewArticle"})
                            model.postEditorSettings}
                     , Cmd.none)
-                
                 _ -> ( model
                      , alert <| "Unknown tab " ++ tab_id)
         ReadFeedItem feed_id item_id is_read ->
@@ -741,7 +741,76 @@ sidebarHistory titles =
                                                         [li [] [text ("There's no year " ++ (fromInt year) ++ " in titles")]]) (keys grouped_by_year |> List.reverse)))]
 
 
+page_wrapper comp = 
+    div [class "flex-container"] 
+        [ div [class "page"]
+              comp]
 
+blog_tab settings model =
+    div [] 
+    (case model.view_state of
+        Loading ->
+            [div [] [text "LOADING"]]
+        PostView article ->
+            [ articleView settings model.loginState model.zone article ]
+        PageView page ->
+            let post_elements = (List.map (articleView settings model.loginState model.zone) page.posts) in
+            (List.concat [ (if post_elements /= [] then
+                                post_elements
+                            else
+                                [ div [class "post"] [ text <| case model.loginState of
+                                                                   LoggedIn usr -> (Debug.toString usr)
+                                                                   _ -> "There are no (also: no user) posts in this instance"]])
+                         , [footer [ attribute "data-testid" "page-changer"
+                                   , class "page-changer" ]
+                                (if page.id > 1 then
+                                     [ a [href ("/blog/page/" ++ fromInt (page.id + 1))] [text "Older posts"]
+                                     , a [href ("/blog/page/" ++ fromInt (page.id - 1)), class "newer-post"] [text "Newer posts"]]
+                                 else
+                                     [a [href ("/blog/page/" ++ fromInt (page.id + 1))] [text "Older posts"]])]])
+        ShowError err ->
+            [pre [] [text err]]
+        TaggedPostsView articles ->
+            (List.map (articleView settings model.loginState model.zone) articles)
+        _ ->
+            [ div [] [ text "Unknown viewstate in blog_tab"] ])
+
+rss_tab model settings =
+    div []
+    (case model.view_state of
+        Feeds feeds show_archived -> [ FeedView.feeds model.feedReaderState show_archived settings model.zone feeds model.new_feed model.feedMetadata]
+        _ -> [ div [] [ text "Unknown viewstate in rss_tab"] ])
+
+postmanager_tab model =
+    div [] 
+    (case model.view_state of
+        PostEditorList titles -> [ PostsAdmin.view titles ]
+        _ -> [ div [] [ text "Unknown viewstate in postmanager_tab"] ])
+
+mediamanager_tab model =
+    div [] 
+    (case model.view_state of
+        MediaList -> [ medialist model.loadedImages model.medialist_state ]
+        _ -> [ div [] [ text "Unknown viewstate in mediamanager_tab"] ])
+
+settings_tab settings model =
+    div []
+        (case model.view_state of
+            SettingsEditor -> [ SettingsEditor.editor settings]
+            _ -> [ div [] [ text "Unknown viewstate in settings_tab"] ])
+
+posteditor_tab settings model =
+    div [ class "posteditor-tab" ]
+    (case model.view_state of 
+        PostEditor ->
+            case model.postEditorSettings of
+                Just editorSettings ->
+                    let post = editorSettings.article
+                        tag_index = editorSettings.selected_tag in
+                    PostEditor.postEditor post tag_index model.showImageModal model.loadedImages model.draggingImages editorSettings settings model.zone model.loginState model.searchedPosts
+                Nothing -> [ div [] [ text "No post loaded" ]]
+        _ -> [ div [] [ text "Unknown viewstate in posteditor_tab" ]])
+                                                              
 view : Model -> Browser.Document Msg
 view model =
     case model.settings of
@@ -753,46 +822,43 @@ view model =
             { title = settings.blog_title
             , body = 
                   [ header [] [a [href "/"] [text settings.blog_title ]]
-                  , Topbar.topbar model.loginState
-                  , div [class "flex-container"] 
-                        [ div [class "page"]
-                              (case model.view_state of
-                                           Loading ->
-                                               [div [] [text "LOADING"]]
-                                           PostView article ->
-                                               [ articleView settings model.loginState model.zone article ]
-                                           PageView page ->
-                                               let post_elements = (List.map (articleView settings model.loginState model.zone) page.posts) in
-                                               (List.concat [ (if post_elements /= [] then
-                                                                   post_elements
-                                                               else
-                                                                   [ div [class "post"] [ text "There are no posts in this instance"]])
-                                                            , [footer [ attribute "data-testid" "page-changer"
-                                                                      , class "page-changer" ]
-                                                                   (if page.id > 1 then
-                                                                        [ a [href ("/blog/page/" ++ fromInt (page.id + 1))] [text "Older posts"]
-                                                                        , a [href ("/blog/page/" ++ fromInt (page.id - 1)), class "newer-post"] [text "Newer posts"]]
-
-                                                                    else
-                                                                        [a [href ("/blog/page/" ++ fromInt (page.id + 1))] [text "Older posts"]])]])
-                                           ShowError err ->
-                                               [pre [] [text err]]
-                                           PostEditorList titles -> [ PostsAdmin.view titles ]
-                                           TaggedPostsView articles ->
-                                               (List.map (articleView settings model.loginState model.zone) articles)
-                                           PostEditor ->
-                                               case model.postEditorSettings of
-                                                   Just editorSettings ->
-                                                       let post = editorSettings.article
-                                                           tag_index = editorSettings.selected_tag in
-                                                       PostEditor.postEditor post tag_index model.showImageModal model.loadedImages model.draggingImages editorSettings settings model.zone model.loginState model.searchedPosts
-                                                   Nothing -> [ div [] [ text "No post loaded" ]]
-                                           MediaList -> [ medialist model.loadedImages model.medialist_state ]
-                                           SettingsEditor -> [ SettingsEditor.editor settings]
-                                           Feeds feeds show_archived -> [ FeedView.feeds model.feedReaderState show_archived settings model.zone feeds model.new_feed model.feedMetadata])
-                        , div [id "sidebar"] [ User.loginView model.loginState
-                                             , (sidebarHistory model.titles )
-                                             , (case model.view_state of
-                                                    PostEditorList titles -> PostsAdmin.tagList titles
-                                                    
-                                                    _ -> div [] [])]]]}
+                  , div [ class "sidebar-flex" ]
+                      [ let tabstate = viewstate_to_tabstate model.view_state in 
+                        tabs "topbar" (tabstate_to_str tabstate) (case model.loginState of
+                                                                      LoggedIn usr -> Just usr
+                                                                      _ -> Nothing)
+                            (Dict.fromList [ ("Blog"
+                                             , TabEntry "Home"
+                                                 (blog_tab settings model)
+                                                 (Just GoHome)
+                                                 ["*"])
+                                           , ("RssFeeds"
+                                             , TabEntry "RSS Feeds"
+                                                 (rss_tab model settings)
+                                                 (Just (PushUrl "/blog/feeds"))
+                                                 ["create-post"] ) -- <- TODO make a real permission for rss
+                                           , ("ManagePosts"
+                                             , TabEntry "Manage posts"
+                                                 (postmanager_tab model)
+                                                 (Just (PushUrl "/blog/postadmin"))
+                                                 ["create-post", "delete-post", "edit-post"])
+                                           , ("ManageMedia"
+                                             , TabEntry "Manage media"
+                                                 (mediamanager_tab model)
+                                                 (Just (PushUrl "/blog/mediamanager"))
+                                                 ["create-post", "delete-post", "edit-post"])
+                                           , ("SettingsTab"
+                                             , TabEntry "Settings"
+                                                 (settings_tab settings model)
+                                                 (Just (PushUrl "/blog/settings"))
+                                                 ["update-settings"])
+                                           , ("PostEditTab"
+                                             , TabEntry "Post editor"
+                                                 (posteditor_tab settings model)
+                                                 (Just GenNewPost)
+                                             ["create-post", "edit-post"])])
+                      , div [id "sidebar"] [ User.loginView model.loginState
+                                           , (sidebarHistory model.titles )
+                                           , (case model.view_state of
+                                                  PostEditorList titles -> PostsAdmin.tagList titles
+                                                  _ -> div [] [])]]]}

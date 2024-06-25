@@ -12,7 +12,7 @@ import Button exposing (murja_button)
 import UUID
 import Article_view exposing (formatDateTime)
 import FeedManager exposing (feedmanager)
-import Tab exposing (tabs)
+import Tab exposing (TabEntry, tabs)
 
 import Random
 
@@ -72,13 +72,10 @@ feeds feedReaderState show_archived settings zone fs new_feed metadata =
                                , checked show_archived
                                , onClick <| ShowArchivedFeedItems (not show_archived)] []
                        , text "Show read items"]
-            , tabs "rss-feed-tab" (readerState_str feedReaderState)
-                  (Dict.fromList [ ("PerFeed", "Group by feed")
-                                 , ("SingleFeed", "Show all in a feed")
-                                 , ("FeedManager", "Manage feeds")])
-                  (Dict.fromList [ ("PerFeed", perFeedView settings zone fs new_feed_state)
-                                 , ("SingleFeed", singleFeedView settings zone fs)
-                                 , ("FeedManager", feedmanager settings.time_format zone fs)])
+            , tabs "rss-feed-tab" (readerState_str feedReaderState) Nothing
+                  (Dict.fromList [ ("PerFeed", TabEntry "Group by feed" (perFeedView settings zone fs new_feed_state) Nothing ["*"])
+                                 , ("SingleFeed", TabEntry "Show all in a feed" (singleFeedView settings zone fs) Nothing ["*"])
+                                 , ("FeedManager", TabEntry "Manage feeds" (feedmanager settings.time_format zone fs) Nothing ["*"])])
                   
             , h3 [] [ text "Add new feed?"]
             , label [ for "name" ] [ text "Feed name" ]

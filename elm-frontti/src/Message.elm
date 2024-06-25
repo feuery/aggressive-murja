@@ -31,7 +31,48 @@ type ViewState
     | TaggedPostsView (List Article.Article)
     | SettingsEditor
     | Feeds (List Feeds.Feed) Bool -- <- show_archived?
-      
+
+-- a simplified version of ViewState type for the main.elm's tabcomponent 
+type TabState
+    = Blog
+    | RssFeeds
+    | ManagePosts
+    | ManageMedia
+    | SettingsTab 
+    | PostEditTab
+
+viewstate_to_tabstate vs =
+    case vs of
+        PageView _ -> Blog
+        PostView _ -> Blog
+        Loading -> Blog
+        ShowError _ -> Blog
+        PostEditorList _ -> ManagePosts
+        PostEditor -> PostEditTab
+        MediaList -> ManageMedia
+        TaggedPostsView _ -> Blog
+        SettingsEditor -> SettingsTab
+        Feeds _ _ -> RssFeeds
+
+tabstate_to_str tb =
+    case tb of
+        Blog -> "Blog"
+        RssFeeds -> "RssFeeds"
+        ManagePosts -> "ManagePosts"
+        ManageMedia -> "ManageMedia"
+        SettingsTab  -> "SettingsTab"
+        PostEditTab -> "PostEditTab"
+                       
+str_to_tabstate str =
+    case str of
+        "Blog" -> Blog
+        "RssFeeds" -> RssFeeds
+        "ManagePosts" -> ManagePosts
+        "ManageMedia" -> ManageMedia
+        "SettingsTab"  -> SettingsTab
+        "PostEditTab" -> PostEditTab
+        _ -> Blog
+
 type alias User =
     { username : String
     , nickname : String

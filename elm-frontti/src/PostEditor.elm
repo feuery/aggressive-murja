@@ -15,7 +15,7 @@ import Page as P
 import Message exposing (..)
 import ImageSelector exposing (imageSelector)
 import Button exposing (murja_button)
-import Tab exposing (tabs)
+import Tab exposing (..)
 import Dict exposing (Dict)
 
 import File exposing (File)
@@ -50,12 +50,14 @@ tagView post selectedTag = div [class "tagview editor-grouper"]
                            , murja_button [ onClick (DropTag selectedTag)
                                           , attribute "data-testid" "remove-tag"]
                                [text "Remove selected tag"]]
+
 editor params =
-    node "ace-editor"
-    (  params
-    ++ [ attribute "theme" "ace/theme/monokai"
-       , attribute "mode" "ace/mode/html"])
-    []
+    div [ class "editor-container" ]
+        [ node "ace-editor"
+             (  params
+                    ++ [ attribute "theme" "ace/theme/monokai"
+                       , attribute "mode" "ace/mode/html"])
+              []]
 
 filesDecoder : D.Decoder (List File)
 filesDecoder =
@@ -138,11 +140,10 @@ postEditor post tag showImageModal loadedImages draggingImages editorSettings ap
                 tabs "posteditor-preview-tab" (if editorSettings.show_preview then
                                                    "PreviewArticle"
                                                else
-                                                   "EditArticle")
-                    (Dict.fromList [ ("EditArticle", "Edit article")
-                                   , ("PreviewArticle", "Preview article")])
-                    (Dict.fromList [ ("EditArticle",
-                                          editor [ id "editor-post-content"
+                                                   "EditArticle") (Just user)
+                    (Dict.fromList [ ("EditArticle"
+                                     , TabEntry "Edit article"
+                                         (editor [ id "editor-post-content"
                                                  , style "background-color" (if draggingImages then "#880088" else "")
                                                  , hijackOn "dragenter" (D.succeed EditorDragEnter)
                                                  , hijackOn "dragend" (D.succeed EditorDragLeave)
@@ -150,6 +151,9 @@ postEditor post tag showImageModal loadedImages draggingImages editorSettings ap
                                                  , hijackOn "dragleave" (D.succeed EditorDragLeave)
                                                  , hijackOn "drop" dropDecoder
                                                  , hijackOn "ready" (D.succeed (RunAce post.content))])
+                                             Nothing ["*"])
                                    , ("PreviewArticle"
-                                     , Article_view.articleView app_settings loginState tz post)])
+                                     , TabEntry "Preview article"
+                                         (Article_view.articleView app_settings loginState tz post)
+                                         Nothing ["*"])])
             _ -> div [] [text "You're not logged in"]]
