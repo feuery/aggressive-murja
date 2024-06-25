@@ -39,6 +39,11 @@ type alias NewFeed =
 type alias FeedMetadata =
     { last_update_timestamps: List String}
 
+-- Article conversion
+itemToArticle item =
+    let creator = Creator "" item.author "" in 
+    Article.Article creator [] item.description Nothing item.title -1 Nothing (Just 1) (Just item.pubdate) False False [] (Article.Rss item.link)
+
 -- metadata decoder
 
 metadataDecoder = Decode.succeed FeedMetadata

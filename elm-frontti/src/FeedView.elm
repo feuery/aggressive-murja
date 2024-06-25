@@ -1,7 +1,7 @@
 module FeedView exposing (..)
 
 import DateFormat as Df
-import Feeds exposing (NewFeed)
+import Feeds exposing (..)
 import Dict 
 import Time
 import Message exposing (..)
@@ -16,46 +16,37 @@ import Tab exposing (TabEntry, tabs)
 
 import Random
 
-feed_item time_format zone item =
+feed_item loginstate settings zone item =
+    let time_format = settings.time_format
+        article = itemToArticle item in 
     case item.feed_id of
         Just feed_id ->
-            li [] [ h1 [] [ a [ href item.link ] [ text item.title] ]
-                  , (if item.title == "" then 
-                         h4 [] [ a [ href item.link] [ text (formatDateTime time_format zone item.pubdate) ]]
-                     else
-                         h4 [] [ text (formatDateTime time_format zone item.pubdate)])
-                  , div [ class "feed-read"] [
-                         let is_read = item.is_read in
-                         button [ onClick <| ReadFeedItem feed_id item.id (not is_read) ] [ text "Mark as read"]]
-                  , div [ class "feed-author"] [ text <| "By " ++ item.author]
-                  , div [ class "feed-item"
-                        -- this is a bit moronic xss vuln, I should research how others have sanitized the html from rss/atom feeds 
-                        , dangerouslySetInnerHTML item.description] []]
+            li [] [ Article_view.articleView settings loginstate zone article ]
         Nothing ->
             li [] [ text "Unknown feed" ]
 
-correctlySortedFeedItemList settings zone items = 
+correctlySortedFeedItemList loginstate settings zone items = 
     (  items
     |> List.sortBy (Time.posixToMillis << .pubdate)
     |> List.reverse
-    |> List.map (feed_item settings.time_format zone))
+    |> List.map (feed_item loginstate settings zone))
 
 -- fs = feeds, elm sucks balls at shadowing
-perFeedView settings zone fs new_feed_state = 
+perFeedView loginstate settings zone fs new_feed_state = 
     ul [ class "feed-list" ]
         (List.map (\feed ->
                        li [ class "feed" ]
                        [ header [] [ text <| feed.name ++ " (" ++ (String.fromInt (List.length feed.items)) ++ ")" ]
                        , a [ href feed.url ] [ text feed.url ]
                        , ul [ class "feed-items" ]
-                           (correctlySortedFeedItemList settings zone <| List.map (\i -> { i | feed_id = Just feed.id}) feed.items)]) fs)
+                           (correctlySortedFeedItemList loginstate settings zone <| List.map (\i -> { i | feed_id = Just feed.id}) feed.items)]) fs)
             
-singleFeedView settings zone fs =
+singleFeedView loginstate settings zone fs =
     let final_feed = List.concatMap (\feed -> List.map (\item -> { item | feed_id = Just feed.id}) feed.items) fs in
     div []
         [ header [] [ text <| (String.fromInt (List.length final_feed)) ++ " unread articles"  ]
         , ul [ class "feed-items" ]
-            (correctlySortedFeedItemList settings zone final_feed)]
+            (correctlySortedFeedItemList loginstate settings zone final_feed)]
               
 
 readerState_str state =
@@ -64,7 +55,7 @@ readerState_str state =
         SingleFeed -> "SingleFeed"
         FeedManager -> "FeedManager"
                              
-feeds feedReaderState show_archived settings zone fs new_feed metadata =
+feeds feedReaderState loginstate show_archived settings zone fs new_feed metadata =
     let new_feed_state = Maybe.withDefault (NewFeed "" "") new_feed
     in
         div [ id "feeds" ] 
@@ -73,8 +64,8 @@ feeds feedReaderState show_archived settings zone fs new_feed metadata =
                                , onClick <| ShowArchivedFeedItems (not show_archived)] []
                        , text "Show read items"]
             , tabs "rss-feed-tab" (readerState_str feedReaderState) Nothing
-                  (Dict.fromList [ ("PerFeed", TabEntry "Group by feed" (perFeedView settings zone fs new_feed_state) Nothing ["*"])
-                                 , ("SingleFeed", TabEntry "Show all in a feed" (singleFeedView settings zone fs) Nothing ["*"])
+                  (Dict.fromList [ ("PerFeed", TabEntry "Group by feed" (perFeedView loginstate settings zone fs new_feed_state) Nothing ["*"])
+                                 , ("SingleFeed", TabEntry "Show all in a feed" (singleFeedView loginstate settings zone fs) Nothing ["*"])
                                  , ("FeedManager", TabEntry "Manage feeds" (feedmanager settings.time_format zone fs) Nothing ["*"])])
                   
             , h3 [] [ text "Add new feed?"]

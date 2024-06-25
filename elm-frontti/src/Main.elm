@@ -778,7 +778,7 @@ blog_tab settings model =
 rss_tab model settings =
     div []
     (case model.view_state of
-        Feeds feeds show_archived -> [ FeedView.feeds model.feedReaderState show_archived settings model.zone feeds model.new_feed model.feedMetadata]
+        Feeds feeds show_archived -> [ FeedView.feeds model.feedReaderState model.loginState show_archived settings model.zone feeds model.new_feed model.feedMetadata]
         _ -> [ div [] [ text "Unknown viewstate in rss_tab"] ])
 
 postmanager_tab model =

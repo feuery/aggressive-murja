@@ -35,6 +35,11 @@ decodeApply : Decode.Decoder a -> Decode.Decoder (a -> b) -> Decode.Decoder b
 decodeApply value partial =
     Decode.andThen (\p -> Decode.map p value) partial
 
+type ArticleSource
+    = Murja
+    | Rss
+      String -- <-link 
+      
 type alias PreviousArticle =
     { id: Int
     , title: String}
@@ -54,7 +59,7 @@ type alias Article =
     , hidden : Bool
     , unlisted : Bool
     , previously: List PreviousArticle
-    }
+    , source: ArticleSource}
 
 -- encoder
 
@@ -121,6 +126,7 @@ articleDecoder =
         |> decodeApply hiddenDecoder
         |> decodeApply unlistedDecoder
         |> decodeApply previouslyDecoder
+        |> decodeApply (Decode.succeed Murja)
 
 type alias Title =
     { title : String

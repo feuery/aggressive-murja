@@ -84,6 +84,7 @@ html, body {
 
 .post {
     width: 100%;
+    margin-bottom: 4em;
 }
 
 body, dialog {
@@ -361,7 +362,7 @@ header {
 
 #posteditor-preview-tab {
     flex: 3;
-} 
+}
 
 @media only screen and (max-device-width:480px)
 {

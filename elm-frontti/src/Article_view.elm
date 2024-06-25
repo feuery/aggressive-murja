@@ -16,9 +16,11 @@ formatDateTime formatString zone posixTime =
 
 articleView settings loginstate zone the_actual_post =
     let versions = Maybe.withDefault [] the_actual_post.versions
+        url = case the_actual_post.source of
+                  Article.Rss link -> link 
+                  Article.Murja -> ("/blog/post/" ++ String.fromInt the_actual_post.id)
     in
-        div [class "post"] [ let post_id = the_actual_post.id in 
-                             a [href ("/blog/post/" ++ String.fromInt post_id)] [ text the_actual_post.title ]
+        div [class "post"] [ a [ href url ] [ text the_actual_post.title ]
                            , div [class "meta"] (List.append [ User.user_avatar the_actual_post.creator
                                                              , p [] [text ("By " ++ the_actual_post.creator.nickname)]
                                                              , case the_actual_post.created_at of
@@ -31,9 +33,11 @@ articleView settings loginstate zone the_actual_post =
                              
                            , (let post_id = the_actual_post.id in
                               case loginstate of
-                                  LoggedIn _ -> a [ href ("/blog/post/edit/" ++ String.fromInt post_id)
-                                                  , attribute "data-testid" "edit-post-btn"
-                                                  , onClick (OpenPostEditor post_id)] [text "Edit this post"]
+                                  LoggedIn _ -> case the_actual_post.source of
+                                                    Article.Murja -> a [ href ("/blog/post/edit/" ++ String.fromInt post_id)
+                                                                       , attribute "data-testid" "edit-post-btn"
+                                                                       , onClick (OpenPostEditor post_id)] [text "Edit this post"]
+                                                    Article.Rss _ -> div [] []
                                   _ -> div [] [])
                                                     
                            , article [ class "content"
