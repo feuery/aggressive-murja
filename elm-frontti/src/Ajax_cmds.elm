@@ -174,3 +174,9 @@ getFeedMeta =
     Http.get
         { url = "/api/user/feeds/meta"
         , expect = Http.expectJson FeedMetaReceived Feeds.metadataDecoder}
+
+postExcerpt excerpt feed_id =
+    Http.post
+        { url = " /api/posts/excerpt/" ++ feed_id
+        , body = Http.stringBody "text/plain" excerpt
+        , expect = Http.expectJson NewPostGenerated Json.int}

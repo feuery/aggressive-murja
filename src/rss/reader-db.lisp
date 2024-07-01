@@ -3,7 +3,7 @@
   (:import-from :halisql :defqueries)
   (:import-from :lisp-fixup :partial :compose)
   (:import-from :cl-date-time-parser :parse-date-time)
-  (:export :*updates* :get-user-feeds :subscribe-to-feed :mark-as-read :delete-feed))
+  (:export :get-feed-name-and-url :*updates* :get-user-feeds :subscribe-to-feed :mark-as-read :delete-feed))
 	
 (in-package :murja.rss.reader-db)
 

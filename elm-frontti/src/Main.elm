@@ -66,7 +66,8 @@ main =
 subscriptions : Model -> Sub Msg
 subscriptions _ = Sub.batch 
                   [ tags ReceivedTag
-                  , aceStateUpdate AceStateUpdate]
+                  , aceStateUpdate AceStateUpdate
+                  , excerptCreated ExcerptCreated]
 
 initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc [] [] Nothing PerFeed Nothing
     
@@ -137,6 +138,9 @@ port closePreviousPostsModal: (() -> Cmd msg)
 port showPreviousPostPreviewModal: (() -> Cmd msg)
 port tags : (String -> msg) -> Sub msg
 port aceStateUpdate : (String -> msg) -> Sub msg
+port showModal: String -> Cmd msg
+port createExcerpt: (String, String) -> Cmd msg
+port excerptCreated: ((String, String) -> msg) -> Sub msg 
 
 toggleHidden article =
     { article | hidden = not article.hidden}
@@ -696,7 +700,15 @@ update msg model =
                     , Cmd.none)
                 Err error -> ( { model | view_state = ShowError (errToString error) }
                              , Cmd.none)
-
+        SelectExcerpt article_uuid ->
+            ( model
+            , showModal <| "excerpt-dialog-" ++ (UUID.toString article_uuid))
+        CreateExcerptPost textarea_id feed_id ->
+            ( model
+            , createExcerpt (textarea_id, UUID.toString feed_id))
+        ExcerptCreated (excerpt, feed_id) ->
+            ( model
+            , postExcerpt excerpt feed_id)
                     
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings

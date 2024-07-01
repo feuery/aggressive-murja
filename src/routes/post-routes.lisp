@@ -86,6 +86,33 @@
   (let ((creator-id (gethash "id" *user*)))
     (prin1-to-string (caar (murja.posts.post-db:insert-post "New title" "New post" creator-id "[]" t nil)))))
 
+(defconstant *excerpt-html-template*
+" <blockquote class=\"excerpt\">
+  <header>
+    <a href=~s> ~s says...</a>
+  </header>
+  ~a 
+</blockquote> ")
+
+(defroute create-excerpt ("/api/posts/excerpt/:feed-item-id" :method :post
+					       :decorators (@json
+							    @transaction
+							    @authenticated
+							    (@can? "create-post"))) ()
+  (let* ((creator-id (gethash "id" *user*))
+	 (name-and-url (first
+			(coerce
+			 (murja.rss.reader-db:get-feed-name-and-url feed-item-id creator-id)
+			 'list)))
+	 (name (gethash "name" name-and-url))
+	 (url (gethash "url" name-and-url))
+	 (excerpt (hunchentoot:raw-post-data :force-text t)))
+    (prin1-to-string (caar (murja.posts.post-db:insert-post "New title"
+							    (format nil *excerpt-html-template*
+								    url name excerpt)
+							    creator-id "[]" t nil)))))
+  
+
 (defroute search-prev ("/api/posts/search-previously" :method :post
 						      :decorators (@json
 								   @transaction

@@ -7,23 +7,33 @@ import Time
 import Message exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onClick)
+import Html.Events exposing (onInput, onClick, on) 
 import Button exposing (murja_button)
 import UUID
 import Article_view exposing (formatDateTime)
 import FeedManager exposing (feedmanager)
 import Tab exposing (TabEntry, tabs)
-
 import Random
 
 feed_item loginstate settings zone item =
     let time_format = settings.time_format
-        article = itemToArticle item in 
-    case item.feed_id of
-        Just feed_id ->
-            li [] [ Article_view.articleView settings loginstate zone article ]
-        Nothing ->
-            li [] [ text "Unknown feed" ]
+        article = itemToArticle item in
+    li [ class "feed-item" ]
+       ( case item.feed_id of
+             Just feed_id ->
+                 [ div [] [ murja_button [ onClick <| SelectExcerpt item.id ] [ text "Write a post about this"]]
+                 , node "dialog" [ id <| "excerpt-dialog-" ++ (UUID.toString item.id) ]
+                     (let textarea_id = "excerpt-dialog-" ++ (UUID.toString item.id) ++ "-textarea" in 
+                     [ div [ class "dialog" ]
+                           [ header [ class "previouslyHeader" ] [ button [ onClick ClosePreviousPostsModel ] [ text "X"]]
+                           , h3 [] [ text "Select an excerpt"]
+                           , textarea [ rows 30
+                                      , cols 60
+                                      , id textarea_id ] [ text item.description ]
+                           , murja_button [ onClick <| CreateExcerptPost textarea_id item.id ] [ text "Create a post" ]]])
+                 , Article_view.articleView settings loginstate zone article ]
+             Nothing ->
+                 [ text "Unknown feed" ])
 
 correctlySortedFeedItemList loginstate settings zone items = 
     (  items

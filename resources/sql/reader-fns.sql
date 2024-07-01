@@ -47,3 +47,10 @@ WHERE fs.id = fi.feed
       AND fi.feed = $2
       AND fs.owner = $3
 RETURNING *;
+
+-- name: get-feed-name-and-url
+-- returns: :array-hash
+SELECT fs.name, fs.url
+FROM blog.feed_subscription fs
+JOIN blog.feed_item fi ON fi.feed = fs.id
+WHERE fi.id = $1 AND fs.owner = $2;

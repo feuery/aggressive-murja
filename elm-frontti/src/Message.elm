@@ -212,6 +212,9 @@ type Msg
   | DeleteFeed UUID
   | FeedDeleted (Result Http.Error ())
   | FeedMetaReceived (Result Http.Error Feeds.FeedMetadata)
+  | SelectExcerpt UUID
+  | CreateExcerptPost String UUID 
+  | ExcerptCreated (String, String)
 
 -- ports
 port reallySetupAce : String -> Cmd msg

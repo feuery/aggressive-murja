@@ -22,7 +22,7 @@ app.ports.reallySetupAce.subscribe( (content) => {
     editor.session.setValue(content);
     editor.on('change', event => {
      	let value = editor.getSession().getValue();
-	     app.ports.aceStateUpdate.send(value);
+	app.ports.aceStateUpdate.send(value);
     });
 });
 
@@ -52,9 +52,29 @@ app.ports.showPreviousPostPreviewModal.subscribe(_ => {
     document.getElementById('previewPreviouslyModal').showModal();
 });
 
+app.ports.showModal.subscribe(id => {
+    document.getElementById(id).showModal();
+});
 
 app.ports.closePreviousPostsModal.subscribe(_ => {
     document.querySelectorAll('dialog').forEach(dialog => {
 	dialog.close();
     });
 });
+
+app.ports.createExcerpt.subscribe(([textarea_id, feed_id]) => {
+    let txt = document.getElementById(textarea_id)
+    
+    if ( !txt ) {
+	alert(`Didn't find textarea with id ${textarea_id}`);
+	return;
+    }
+
+    let start = txt.selectionStart;
+    let finish = txt.selectionEnd;
+    
+    let selectedText = txt.value.substring(start, finish);
+    app.ports.excerptCreated.send([selectedText, feed_id]);
+});
+
+    
