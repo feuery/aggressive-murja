@@ -34,7 +34,12 @@
 			     :decorators ( @transaction)) ()
   (let ((lisp-fixup:*rfc822* t))
     (let* ((settings (get-settings))
+	   (if-modified-since (when (hunchentoot:header-in* :if-modified-since)
+				(lisp-fixup:if-modified-since->simpledate-timestamp
+				 (hunchentoot:header-in* :if-modified-since))))
 	   (page-size (gethash "recent-post-count" settings))
-	   (page (get-page 1 page-size :allow-hidden? nil)))
+	   (page (get-page 1 page-size :allow-hidden? nil
+				       :modified-since if-modified-since)))
+
       (setf (hunchentoot:content-type*) "application/rss+xml")
       (posts->rss page))))

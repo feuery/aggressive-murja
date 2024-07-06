@@ -82,6 +82,7 @@ ORDER BY p.created_at DESC
 -- $1 == page-id
 -- $2 == page-size
 -- $3 == show-hidden?
+-- $4 == modified-since 
 -- name: get-page*
 -- returns: :array-hash
 SELECT p.ID, p.Title, p.Content, p.created_at, p.tags, COUNT(c.ID) AS "amount-of-comments", json_build_object('username', u.Username, 'nickname', u.Nickname, 'img_location', u.Img_location) as "creator", json_agg(DISTINCT version) as "versions", p.hidden, p.unlisted,
@@ -93,6 +94,7 @@ LEFT JOIN blog.Post_History ph ON (ph.id = p.id AND ((not ph.unlisted) OR $3) AN
 LEFT JOIN blog.Previously_Link_Titles pl ON p.id = pl.referencee_id
 WHERE ((NOT p.unlisted) OR $3)
   AND ((NOT p.hidden) OR $3)
+  AND (($4::timestamp IS NULL) OR p.created_at > $4::timestamp)
 GROUP BY p.ID, u.ID
 ORDER BY p.created_at DESC
 LIMIT $2

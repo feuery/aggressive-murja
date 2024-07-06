@@ -1,6 +1,9 @@
 (defpackage lisp-fixup
   (:use :cl)
-  (:export :*rfc822* :sha-512 :partial :compose :drop :slurp-bytes :slurp-utf-8))
+  (:export :if-modified-since->simpledate-timestamp :*rfc822*
+	   :sha-512 :partial
+	   :compose :drop
+	   :slurp-bytes :slurp-utf-8))
 
 (in-package :lisp-fixup)
 
@@ -76,6 +79,22 @@
     (12 "Dec")
     (t "")))
 
+(defun month->ordinal (month)
+  (alexandria:switch (month :test #'equal)
+    ("January" 1)
+    ("February" 2)
+    ("March" 3)
+    ("April" 4)
+    ("May" 5)
+    ("June" 6)
+    ("July" 7)
+    ("August" 8)
+    ("September" 9)
+    ("October" 10)
+    ("November" 11)
+    ("December" 12)
+    (t "")))
+
 (defun fix-timestamp (timestamp)
   "Fixes timestamps returned from postmodern to a json-format elm can parse" 
   (multiple-value-bind (year month day hour minute second millisec)
@@ -90,3 +109,16 @@
 		  year
 		  hour minute second)
 	  (format nil "~d-~2,'0d-~2,'0dT~2,'0d:~2,'0d:~2,'0dZ" year month day hour minute second)))))
+
+;; Wed, 30 March 2016 08:09:00 GMT
+(defun if-modified-since->simpledate-timestamp (header)
+  (let* ((header (str:trim (second (str:split #\, header)))))
+    (destructuring-bind (day month year timestamp gmt ) (str:split #\Space header)
+      (destructuring-bind (h m sec) (str:split #\: timestamp)
+	(let ((month (month->ordinal month)))
+	  (apply #'simple-date:encode-timestamp
+		 (mapcar (lambda (e)
+			   (if (stringp e)
+			       (parse-integer e)
+			       e))
+			 (list year month day h m sec))))))))

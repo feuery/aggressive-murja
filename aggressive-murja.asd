@@ -25,6 +25,7 @@
 	       "cl-date-time-parser"
 	       ;; transforms those to unix time
 	       "cl-epoch"
+	       "alexandria"
 	       )
   :description "A rewrite of the <a href=\"https://github.com/feuery/murja-blog/\">murja blogging engine</a> in lisp"
   :components ((:module "src"
