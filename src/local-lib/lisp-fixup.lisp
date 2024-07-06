@@ -1,6 +1,7 @@
 (defpackage lisp-fixup
   (:use :cl)
   (:export :if-modified-since->simpledate-timestamp :*rfc822*
+	   :fix-timestamp
 	   :sha-512 :partial
 	   :compose :drop
 	   :slurp-bytes :slurp-utf-8))

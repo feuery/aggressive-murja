@@ -180,3 +180,8 @@ INSERT INTO blog.Previously_Link VALUES ($1, $2) ON CONFLICT DO NOTHING;
 -- name: search-posts
 -- returns: :array-hash
 select post.id, post.title from blog.Post where (title ilike '%'||$1||'%' or content ilike '%'||$1||'%') and not unlisted and not hidden;
+
+-- name: last-modified*
+-- Returns whatever rss-server should return as its last-modified header.
+-- I can't be arsed to hack the 2 and a half time libraries this app uses to provide this functionality 
+select max(created_at) from blog.post where not hidden and not unlisted;

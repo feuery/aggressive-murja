@@ -175,9 +175,9 @@
 	 (dada "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Sed posuere interdum sem. Quisque ligula eros ullamcorper quis, lacinia quis facilisis sed sapien. Mauris varius diam vitae arcu. Sed arcu lectus auctor vitae, consectetuer et venenatis eget velit. Sed augue orci, lacinia eu tincidunt et eleifend nec lacus. Donec ultricies nisl ut felis, suspendisse potenti. Lorem ipsum ligula ut hendrerit mollis, ipsum erat vehicula risus, eu suscipit sem libero nec erat. Aliquam erat volutpat. Sed congue augue vitae neque. Nulla consectetuer porttitor pede. Fusce purus morbi tortor magna condimentum vel, placerat id blandit sit amet tortor.\n\nMauris sed libero. Suspendisse facilisis nulla in lacinia laoreet, lorem velit accumsan velit vel mattis libero nisl et sem. Proin interdum maecenas massa turpis sagittis in, interdum non lobortis vitae massa. Quisque purus lectus, posuere eget imperdiet nec sodales id arcu. Vestibulum elit pede dictum eu, viverra non tincidunt eu ligula.\n\nNam molestie nec tortor. Donec placerat leo sit amet velit. Vestibulum id justo ut vitae massa. Proin in dolor mauris consequat aliquam. Donec ipsum, vestibulum ullamcorper venenatis augue. Aliquam tempus nisi in auctor vulputate, erat felis pellentesque augue nec, pellentesque lectus justo nec erat. Aliquam et nisl. Quisque sit amet dolor in justo pretium condimentum.\n\nVivamus placerat lacus vel vehicula scelerisque, dui enim adipiscing lacus sit amet sagittis, libero enim vitae mi. In neque magna posuere, euismod ac tincidunt tempor est. Ut suscipit nisi eu purus. Proin ut pede mauris eget ipsum. Integer vel quam nunc commodo consequat. Integer ac eros eu tellus dignissim viverra. Maecenas erat aliquam erat volutpat. Ut venenatis ipsum quis turpis. Integer cursus scelerisque lorem. Sed nec mauris id quam blandit consequat. Cras nibh mi hendrerit vitae, dapibus et aliquam et magna. Nulla vitae elit. Mauris consectetuer odio vitae augue.")
 
 	 (pubdates (vector (simple-date:encode-timestamp 2015 8 25)
+			   (simple-date:encode-timestamp 2017 1 12)
 			   (simple-date:encode-timestamp 2015 10 12)
-			   (simple-date:encode-timestamp 2016 4 1)
-			   (simple-date:encode-timestamp 2017 1 12)))
+			   (simple-date:encode-timestamp 2016 4 1)))
 	 (dada-list (str:split #\Space dada))
 	 (size (length dada-list)))
     
@@ -208,13 +208,15 @@ values ($1, $2, $3, $4, $5, $6, $7) returning id;"
      And then we shall see that if we are querying the rss api with http/drakma with if-modified-since header set - only the newer titles are returned
 
      !L
-     (let* ((result (drakma->string (drakma:http-request (format nil "~a/api/rss" (url))
-							 :additional-headers `(("if-modified-since" . "Wed, 30 March 2016 08:09:00 GMT")))))
-	    (result-per-line (str:split #\Newline result))
-	    (pubdates (remove-if-not (lisp-fixup:partial #'str:contains? "<pubDate>") result-per-line)))
-       
-       (is (every (lambda (line) (not (str:contains? "2015" line))) pubdates))
-       (is (= 2 (length pubdates)))))))
+     (multiple-value-bind (body status headers) (drakma:http-request (format nil "~a/api/rss" (url))
+								     :additional-headers `(("if-modified-since" . "Wed, 30 March 2016 08:09:00 GMT")))
+       (let* ((result (drakma->string body))
+	      (last-modified (rest (assoc :last-modified headers)))
+	      (result-per-line (str:split #\Newline result))
+	      (pubdates (remove-if-not (lisp-fixup:partial #'str:contains? "<pubDate>") result-per-line)))
+	 (is (string= last-modified "Thu, 12 Jan 2017 00:00:00 GMT"))
+	 (is (every (lambda (line) (not (str:contains? "2015" line))) pubdates))
+	 (is (= 2 (length pubdates))))))))
 
 ;; (setf fiveam:*run-test-when-defined* t)
 

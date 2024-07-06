@@ -39,7 +39,12 @@
 				 (hunchentoot:header-in* :if-modified-since))))
 	   (page-size (gethash "recent-post-count" settings))
 	   (page (get-page 1 page-size :allow-hidden? nil
-				       :modified-since if-modified-since)))
+				       :modified-since if-modified-since))
+	   (last-modified 
+	     ;; this application's tz handling is a fucking joke 
+	     (str:replace-all "EST" "GMT" 
+			      (lisp-fixup:fix-timestamp (caar (murja.posts.post-db:last-modified*))))))
 
       (setf (hunchentoot:content-type*) "application/rss+xml")
+      (setf (hunchentoot:header-out "Last-Modified") last-modified)
       (posts->rss page))))
