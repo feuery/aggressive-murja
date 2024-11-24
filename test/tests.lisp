@@ -2,7 +2,7 @@
   (:use :cl :fiveam)
   (:import-from :murja.users.user-db :register-user)
   (:import-from :murja.tests.literal :literal)
-  (:export :main-suite))
+  (:export :prepare-db-and-server :drakma->string :url :main-suite :prepare-db-and-server))
 
 (in-package :murja.tests)
 
@@ -217,9 +217,3 @@ values ($1, $2, $3, $4, $5, $6, $7) returning id;"
 	 (is (string= last-modified "Thu, 12 Jan 2017 00:00:00 GMT"))
 	 (is (every (lambda (line) (not (str:contains? "2015" line))) pubdates))
 	 (is (= 2 (length pubdates))))))))
-
-;; (setf fiveam:*run-test-when-defined* t)
-
-(if (and (sb-ext:posix-getenv "GHA")
-	 (not (run! 'main-suite)))
-    (sb-ext:exit :code 666))

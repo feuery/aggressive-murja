@@ -2,9 +2,10 @@
   (:use :cl)
   (:export :if-modified-since->simpledate-timestamp :*rfc822*
 	   :fix-timestamp
-	   :sha-512 :partial
-	   :compose :drop
-	   :slurp-bytes :slurp-utf-8))
+   :sha-512 :partial
+   :compose :drop
+   :slurp-bytes :slurp-utf-8
+   :range :range2))
 
 (in-package :lisp-fixup)
 
@@ -51,6 +52,15 @@
               :initial-value x
               :from-end t)))
 
+(defun range2 (a b)
+  (assert (<= a b))
+  (when (not (equalp a b))
+    (cons a (range2 (1+ a) b))))
+
+(defun range (b)
+  (assert (> b 0))
+  (range2 0 b))
+
 (defvar *rfc822* nil)
 
 (defun weekday->string (day)
@@ -94,7 +104,19 @@
     ("October" 10)
     ("November" 11)
     ("December" 12)
-    (t "")))
+
+    ("Jan" 1)
+    ("Feb" 2)
+    ("Mar" 3)
+    ("Apr" 4)
+    ("May" 5)
+    ("Jun" 6)
+    ("Jul" 7)
+    ("Aug" 8)
+    ("Sep" 9)
+    ("Oct" 10)
+    ("Nov" 11)
+    ("Dec" 12)))
 
 (defun fix-timestamp (timestamp)
   "Fixes timestamps returned from postmodern to a json-format elm can parse" 
@@ -113,13 +135,16 @@
 
 ;; Wed, 30 March 2016 08:09:00 GMT
 (defun if-modified-since->simpledate-timestamp (header)
+  "Transforms timestamp strings as specified by Last-Modified
+   header (RFC822?) into something you can dump into PostgreSQL"
   (let* ((header (str:trim (second (str:split #\, header)))))
     (destructuring-bind (day month year timestamp gmt ) (str:split #\Space header)
       (destructuring-bind (h m sec) (str:split #\: timestamp)
 	(let ((month (month->ordinal month)))
-	  (apply #'simple-date:encode-timestamp
-		 (mapcar (lambda (e)
-			   (if (stringp e)
-			       (parse-integer e)
-			       e))
-			 (list year month day h m sec))))))))
+	  (when month
+	    (apply #'simple-date:encode-timestamp
+		   (mapcar (lambda (e)
+			     (if (stringp e)
+				 (parse-integer e)
+				 e))
+			   (list year month day h m sec)))))))))

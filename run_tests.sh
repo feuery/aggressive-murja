@@ -1,0 +1,1 @@
+sbcl --disable-debugger --load ./aggressive-murja.asd --eval '(asdf:make "aggressive-murja")' --eval '(asdf:make "aggressive-murja/tests")' --eval "(fiveam:run! 'murja.tests:main-suite)" --eval '(sb-ext:exit)'

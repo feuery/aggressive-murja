@@ -27,7 +27,7 @@ SELECT fs.id, fs.name, fs.url,
 			  'nickname',
 			  u.Nickname,
 			  'img_location',
-			  u.Img_location) as "creator"
+			  u.Img_location) as "creator", fs.last_modified
 FROM blog.feed_subscription fs
 JOIN blog.Users u ON u.ID = fs.owner;
 
@@ -54,3 +54,8 @@ SELECT fs.name, fs.url
 FROM blog.feed_subscription fs
 JOIN blog.feed_item fi ON fi.feed = fs.id
 WHERE fi.id = $1 AND fs.owner = $2;
+
+-- name: update-last-modified @execute
+UPDATE blog.feed_subscription
+SET last_modified = $2
+WHERE id = $1;

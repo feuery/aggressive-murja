@@ -86,7 +86,7 @@
   (let ((creator-id (gethash "id" *user*)))
     (prin1-to-string (caar (murja.posts.post-db:insert-post "New title" "New post" creator-id "[]" t nil)))))
 
-(defconstant *excerpt-html-template*
+(defvar *excerpt-html-template*
 " <blockquote class=\"excerpt\">
   <header>
     <a href=~s> ~s says...</a>

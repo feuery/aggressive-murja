@@ -1,3 +1,6 @@
+(require 'asdf)
+(in-package :asdf-user)
+
 (defsystem "aggressive-murja"
   :version "3.0.0-devel"
   :author "Ilpo Lehtinen"
@@ -63,9 +66,9 @@
 		   (:file "rss-reader-routes")
 		   (:file "root-routes")))
 		 (:file "main"))))
-  :in-order-to ((test-op (test-op "pichunter/tests"))))
+  :in-order-to ((test-op (test-op "aggressive-murja/tests"))))
 
-(defsystem "aggressive-murja-tests"
+(defsystem "aggressive-murja/tests"
   :author  "Ilpo Lehtinen"
   :licence "GPLv3"
   :depends-on ("aggressive-murja"
@@ -74,6 +77,11 @@
 		:components
 		((:file "literal")
 		 (:file "literal-test")
-		 (:file "tests"))))
+		 (:file "tests")
+		 (:file "rss-tests"))))
   :perform (test-op (op c)
 		    (eval (read-from-string "(fiveam:run! 'murja.tests:main-suite)"))))
+
+;; (asdf:make "aggressive-murja")
+;; (asdf:make "aggressive-murja/tests")
+;; (murja:start-server)

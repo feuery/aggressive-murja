@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>murja-test-instance</title>
+    <link>http://localhost:3010/</link>
+    <description>Automatic tests </description>
+    <language>fi-FI</language>
+
+    <pubDate>Tue, 10 Jun 2024 04:00:00 GMT</pubDate>
+    <lastBuildDate>Tue, 10 Jun 2024 09:41:01 GMT</lastBuildDate>
+    <generator>murja test data</generator>
+    
+    <item>
+      <title>Test title</title>
+      <link>http://localhost:3010/blog/post/1</link>
+      <description>Mitä dadaa?</description>
+      <pubDate>Tue, 03 Jun 2003 09:39:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>Test title 2</title>
+      <link>http://localhost:3010/blog/post/2</link>
+      <description>Mitä ihmeen dadaa?</description>
+      <pubDate>Tue, 03 Jun 2023 09:39:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>Test title 3</title>
+      <link>http://localhost:3010/blog/post/2</link>
+      <description>Mitä ihmettä?</description>
+      <pubDate>Tue, 03 Jun 2024 09:39:21 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
