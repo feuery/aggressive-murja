@@ -24,21 +24,22 @@ jobs:
 
       - name: Start db
         run: |
-          docker-compose up -d automatic-test-db
+          docker compose up -d automatic-test-db
           docker network ls
           
       - name: Setup and run tests
         uses: addnab/docker-run-action@v3
         with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
           image: fukamachi/sbcl:latest
           options: -v ${{ github.workspace }}:/workspace -v ${{ github.workspace }}/config:/etc/murja -e MURJA_DB_HOST=automatic-test-db -e MURJA_DB_PORT=5432 -e MURJA_E2E=e2e -e GHA=true -p 3010:3010 --network aggressive-murja_murja_test_network
           run: |
             cd /workspace
             mkdir -p ~/common-lisp
-            
             sbcl --load ./quicklisp.lisp --load ./install_ql.lisp
             ln -s /workspace ~/common-lisp/aggressive-murja
-            ln -s /workspace ~/common-lisp/aggressive-murja-tests
+            ln -s /workspace ~/common-lisp/aggressive-murja/tests
             sbcl --load run_tests.lisp
             
   build:
@@ -120,7 +121,7 @@ jobs:
         
       - name: Start the database
         run: |
-          docker-compose up -d db
+          docker compose up -d db
           
       - name: Start murja
         id: tests

@@ -1,2 +1,5 @@
+(format t "updating quicklisp~%")
+(ql:update-dist "quicklisp")
+(format t "loading murja ~%")
 (ql:quickload :aggressive-murja)
-(ql:quickload :aggressive-murja-tests)
+(ql:quickload :aggressive-murja/tests)
