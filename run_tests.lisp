@@ -1,2 +1,6 @@
+(format t "updating quicklisp, do we have cl-epoch?~%")
+(ql:update-dist "quicklisp")
+(ql:system-apropos "cl-epoch")
+(format t "loading murja ~%")
 (ql:quickload :aggressive-murja)
-(ql:quickload :aggressive-murja-tests)
+(ql:quickload :aggressive-murja/tests)
