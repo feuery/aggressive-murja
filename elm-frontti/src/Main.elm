@@ -771,7 +771,7 @@ blog_tab settings model =
                                 post_elements
                             else
                                 [ div [class "post"] [ text <| case model.loginState of
-                                                                   LoggedIn usr -> (Debug.toString usr)
+                                                                   LoggedIn usr -> "Hi " ++ usr.nickname ++ ", there are no (also: no user) posts in this instance"
                                                                    _ -> "There are no (also: no user) posts in this instance"]])
                          , [footer [ attribute "data-testid" "page-changer"
                                    , class "page-changer" ]
