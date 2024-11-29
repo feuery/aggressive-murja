@@ -7,6 +7,12 @@
 	
 (in-package :murja.rss.reader-db)
 
+(defparameter unix-epoch
+  (encode-universal-time 0 0 0 1 1 1970 0))
+
+(defun universal-to-unix (universal-time)
+  (- universal-time unix-epoch))
+
 (defqueries "reader-fns")
 
 (defun parse (key hashmap)
@@ -87,7 +93,7 @@ The second value returned is the last-modified response header as simpledate-tim
 		     (get-child-item-value "author" (xmls:node-children item))
 		     ;; author seems to be optional value, let's get title from <channel> if missing
 		     (get-child-item-value "title" (xmls:node-children channel))))
-	    (pubDate (cl-epoch:universal->unix-time
+	    (pubDate (universal-to-unix
 		      (parse-date-time (get-child-item-value "pubDate" (xmls:node-children item))))))
 	(log:info "Parsed ~a as ~a"
 		  (get-child-item-value "pubDate" (xmls:node-children item))
@@ -105,7 +111,7 @@ The second value returned is the last-modified response header as simpledate-tim
       (let ((title (or (get-child-item-value "title" (xmls:node-children entry)) ""))
 	    (link (get-child-item-value "id" (xmls:node-children entry))) ;; atom calls hrefs 'id'
 	    (description (get-child-item-value "content" (xmls:node-children entry)))
-	    (pubDate (cl-epoch:universal->unix-time
+	    (pubDate (universal-to-unix
 		      (parse-date-time (get-child-item-value "updated" (xmls:node-children entry))))))
 
 	(log:info "Inserting ~a~%" (list :title title :link link :description description :author author :pubDate pubDate :feed-id feed-id))
