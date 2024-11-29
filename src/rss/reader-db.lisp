@@ -58,8 +58,9 @@ The second value returned is the last-modified response header as simpledate-tim
 											(list (cons "If-Modified-Since" modified-since))))
     (let* ((last-modified-header (cdr (assoc :last-modified headers)))
 	   (_ (log:info "last-modified-header: ~a~%" last-modified-header))
-	   (last-modified (lisp-fixup:if-modified-since->simpledate-timestamp
-			   last-modified-header)))
+	   (last-modified (when last-modified-header
+			    (lisp-fixup:if-modified-since->simpledate-timestamp
+			     last-modified-header))))
       (log:info "last-modified: ~a~%" last-modified)
 
       (values
@@ -135,10 +136,10 @@ The second value returned is the last-modified response header as simpledate-tim
 				  (get-child-item-value "author" (xmls:node-children feed-parsed))))))
 	      (parse-atom author feed-id feed-parsed))
 	    (parse-rss feed-id feed-parsed))
-
-	(log:info "Updating ~a last-modified to ~a~%" feed-id last-modified)
-	(update-last-modified feed-id last-modified)
-	(log:info "Updated~%")))))
+	(when last-modified
+	  (log:info "Updating ~a last-modified to ~a~%" feed-id last-modified)
+	  (update-last-modified feed-id last-modified)
+	  (log:info "Updated~%"))))))
 
 (defun current-hour ()
   (multiple-value-bind (second minute hour) (decode-universal-time (get-universal-time))
