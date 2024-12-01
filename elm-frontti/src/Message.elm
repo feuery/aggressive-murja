@@ -14,6 +14,7 @@ import Url
 import Title
 import Feeds
 import Image exposing (Image, ReferencingPost)
+import Logs 
 
 import File exposing (File)
 import UUID exposing (UUID)
@@ -31,6 +32,7 @@ type ViewState
     | TaggedPostsView (List Article.Article)
     | SettingsEditor
     | Feeds (List Feeds.Feed) Bool -- <- show_archived?
+    | Logs (List Logs.Log)
 
 -- a simplified version of ViewState type for the main.elm's tabcomponent 
 type TabState
@@ -53,6 +55,7 @@ viewstate_to_tabstate vs =
         TaggedPostsView _ -> Blog
         SettingsEditor -> SettingsTab
         Feeds _ _ -> RssFeeds
+        Logs _ -> Blog
 
 tabstate_to_str tb =
     case tb of
@@ -215,6 +218,7 @@ type Msg
   | SelectExcerpt UUID
   | CreateExcerptPost String UUID 
   | ExcerptCreated (String, String)
+  | GotAdminLogs (Result Http.Error (List Logs.Log))
 
 -- ports
 port reallySetupAce : String -> Cmd msg

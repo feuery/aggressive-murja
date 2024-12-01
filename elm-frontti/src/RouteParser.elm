@@ -15,6 +15,7 @@ type Route
     | SettingsEditor
     | FeedReader
     | Home
+    | Logs 
     | NotFound
 
 routeParser =
@@ -28,6 +29,7 @@ routeParser =
         , map MediaManager (s "blog" </> (s "mediamanager"))
         , map SettingsEditor (s "blog" </> (s "settings"))
         , map TaggedPosts (s "blog" </> (s "tags" </> string))
+        , map Logs (s "blog" </> (s "logs"))
         , map PostAdmin (s "blog" </> (s "postadmin"))
         , map FeedReader (s "blog" </> (s "feeds"))]
 

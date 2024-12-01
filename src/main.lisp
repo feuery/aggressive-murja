@@ -26,22 +26,31 @@
 				     :secure secure
 				     :http-only http-only
 				     :reply reply))))
+(defun stop-server ()
+  (hunchentoot:stop *server*))
 
-(defun start-server (&key (port 3010))
+(defun start-server (&key (port 3010) stream)
   (format t "Starting murja server~%")
   (with-db
       (migrate))
   (let ((server (make-instance 'easy-routes:easy-routes-acceptor :port port)))
+
+    (when stream
+      (setf (hunchentoot:acceptor-access-log-destination server) stream))
+    
     (when (equalp 3010 port)
       (setf *server* server))
+    
     (hunchentoot:start server)
     (format t "Started murja server on ~a ~%" port)
     server))
 
 (defun main (&key (port 3010))
-  (start-server :port port)
-  (handler-case
-      (loop do (sleep 1000))
-    (condition () nil)))
+  (with-open-file (f murja.routes.settings-routes:*log-file* :direction :output :if-does-not-exist :create)
+    (let ((*standard-output* f))
+      (start-server :port port :stream f)
+      (handler-case
+	  (loop do (sleep 1000))
+	(condition () nil)))))
 
 ;; (start-server :port 3010)

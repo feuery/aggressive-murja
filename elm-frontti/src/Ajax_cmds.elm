@@ -8,6 +8,7 @@ import Message exposing (..)
 import Http exposing (..)
 import Image as Image
 import Settings
+import Logs
 import Json.Decode as Json
 
 getSession =
@@ -180,3 +181,8 @@ postExcerpt excerpt feed_id =
         { url = " /api/posts/excerpt/" ++ feed_id
         , body = Http.stringBody "text/plain" excerpt
         , expect = Http.expectJson NewPostGenerated Json.int}
+
+getAdminLogs =
+    Http.get
+        { url = "/api/logs"
+        , expect = Http.expectJson GotAdminLogs (Json.list Logs.decoder)}

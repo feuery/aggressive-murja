@@ -15,7 +15,6 @@ import Page as P
 import Settings
 import Message exposing (..)
 import User
-import Topbar
 import PostsAdmin
 import PostEditor
 import SettingsEditor
@@ -118,6 +117,9 @@ viewStatePerUrl url =
                                             , getSettings
                                             , getFeeds False 
                                             , getFeedMeta ])
+        RouteParser.Logs -> (Loading, [ getSession
+                                      , getAdminLogs 
+                                      , getTitles])
     
 init _ url key =
     let (viewstate, cmds) = (viewStatePerUrl url)
@@ -709,6 +711,15 @@ update msg model =
         ExcerptCreated (excerpt, feed_id) ->
             ( model
             , postExcerpt excerpt feed_id)
+        GotAdminLogs result ->
+            case result of
+                Ok logs ->
+                    ({ model | view_state = Logs logs}
+                    , Cmd.none)
+                Err error ->
+                    ( { model | view_state = ShowError (errToString error) }
+                    , Cmd.none)
+                           
                     
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings
@@ -758,6 +769,8 @@ page_wrapper comp =
         [ div [class "page"]
               comp]
 
+unknown_state = [ div [] [ text "Unknown viewstate in blog_tab"] ]            
+
 blog_tab settings model =
     div [] 
     (case model.view_state of
@@ -784,8 +797,17 @@ blog_tab settings model =
             [pre [] [text err]]
         TaggedPostsView articles ->
             (List.map (articleView settings model.loginState model.zone) articles)
-        _ ->
-            [ div [] [ text "Unknown viewstate in blog_tab"] ])
+        Logs logs ->
+         [ div [] [text <| "Logs " ++ Debug.toString logs]]
+
+        -- ignored cases (that should maybe be removed from the enumeration?) that are inlined here to make compiler yell about new unimplemented enumerations
+        PostEditorList _ -> unknown_state
+        PostEditor -> unknown_state
+        MediaList -> unknown_state
+        SettingsEditor -> unknown_state
+        Feeds _ _ -> unknown_state
+         
+    )
 
 rss_tab model settings =
     div []
@@ -811,6 +833,10 @@ settings_tab settings model =
             SettingsEditor -> [ SettingsEditor.editor settings]
             _ -> [ div [] [ text "Unknown viewstate in settings_tab"] ])
 
+logs_tab settings model =
+    div []
+        [ text "Logs tab"]
+            
 posteditor_tab settings model =
     div [ class "posteditor-tab" ]
     (case model.view_state of 
@@ -863,6 +889,11 @@ view model =
                                              , TabEntry "Settings"
                                                  (settings_tab settings model)
                                                  (Just (PushUrl "/blog/settings"))
+                                                 ["update-settings"])
+                                           , ("SettingLogs"
+                                             , TabEntry "Logs"
+                                                 (logs_tab settings model)
+                                                 (Just (PushUrl "/blog/logs"))
                                                  ["update-settings"])
                                            , ("PostEditTab"
                                              , TabEntry "Post editor"
