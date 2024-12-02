@@ -117,7 +117,8 @@ viewStatePerUrl url =
                                             , getSettings
                                             , getFeeds False 
                                             , getFeedMeta ])
-        RouteParser.Logs -> (Loading, [ getSession
+        RouteParser.Logs -> (Loading, [ getSettings
+                                      , getSession
                                       , getAdminLogs 
                                       , getTitles])
     
