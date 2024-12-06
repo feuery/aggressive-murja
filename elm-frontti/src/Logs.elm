@@ -2,6 +2,7 @@ module Logs exposing (..)
 
 import Article exposing (decodeApply)
 import Json.Decode as Decode exposing (Decoder, succeed)
+import Json.Encode as Json exposing (..)
 import Regex exposing (Regex)
 
 type alias Log =
@@ -32,3 +33,21 @@ parsedGroup_to_group pg =
     
 rowDecoder = Decode.field "row" Decode.string
 decoder = Decode.succeed Log |> decodeApply rowDecoder             
+
+groupEncoder group =
+    object
+        [ ( "name", string group.name)
+        , ( "alarmy", bool group.alarmy)]
+
+groupsEncoder groups =
+    list groupEncoder groups
+
+nameDecoder = Decode.field "name" Decode.string
+alarmyDecoder = Decode.field "alarmy" Decode.bool
+
+groupDecoder = Decode.succeed Group
+               |> decodeApply nameDecoder
+               |> decodeApply alarmyDecoder
+               |> decodeApply (Decode.succeed [])
+
+groupsDecoder = Decode.list groupDecoder

@@ -61,3 +61,28 @@
 	  (list "no logs found")
 	  (mapcar #'logify)
 	  stringify))))
+
+(defroute post-logs-groups ("/api/logs/groups" :method :post
+					       :decorators (@transaction
+							    @json
+							    @authenticated
+							    (@can? "update-settings"))) ()
+  (let* ((body-str (hunchentoot:raw-post-data :force-text t))
+	 (body (coerce (parse body-str) 'list)))
+    (log:info "Trying to save ~a~%" body-str)
+    (postmodern:execute "DELETE FROM blog.log_group;")
+    (dolist (group body)
+      (postmodern:execute "INSERT INTO blog.log_group (name, alarmy) VALUES ($1, $2)"
+			  (gethash "name" group)
+			  (gethash "alarmy" group)))
+
+    (setf (hunchentoot:return-code*) 204)
+    ""))
+
+(defroute get-logs-groups ("/api/logs/groups" :method :get 
+					       :decorators (@transaction
+							    @json
+							    @authenticated
+							    (@can? "update-settings"))) ()
+  (let ((groups (postmodern:query "SELECT name, alarmy FROM blog.log_group" :array-hash)))
+    (stringify groups)))

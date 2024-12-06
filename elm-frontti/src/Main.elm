@@ -120,11 +120,13 @@ viewStatePerUrl url =
                                             , getSettings
                                             , getFeeds False 
                                             , getFeedMeta ])
-        RouteParser.Logs -> (Loading, [ getSettings
-                                      , getSession
-                                      , getAdminLogs 
-                                      , getTitles])
-    
+        RouteParser.Logs -> ( (Logs [] [] "")
+                            , [ getSettings
+                              , getSession
+                              , getAdminLogs
+                              , getTitles
+                              , getLogGroups])
+
 init _ url key =
     let (viewstate, cmds) = (viewStatePerUrl url)
         model = initialModel url key viewstate
@@ -718,8 +720,13 @@ update msg model =
         GotAdminLogs result ->
             case result of
                 Ok logs ->
-                    ({ model | view_state = Logs logs [] ""}
-                    , Cmd.none)
+                    case model.view_state of
+                        Logs _ g str ->
+                            ({ model | view_state = Logs logs g str}
+                            , Cmd.none)
+                        _ ->
+                            ( model
+                            , alert "Wrong viewstate again")
                 Err error ->
                     ( { model | view_state = ShowError (errToString error) }
                     , Cmd.none)
@@ -732,28 +739,25 @@ update msg model =
         SaveLogGroup new_potential_regex ->
             case Regex.fromString new_potential_regex of
                 Just _ ->
-                    let new_viewstate =
-                            case model.view_state of
-                                Logs logs groups _ ->
-                                    let group = Logs.str_to_group new_potential_regex
-                                        -- new_groups: List (Maybe Logs.Group)
-                                        new_groups = (group::groups)                                                
-                                    in 
-                                        Logs logs new_groups ""
-                                _ -> model.view_state
-                    in
-                        ({ model | view_state = new_viewstate}
-                        , Cmd.none)
+                    case model.view_state of
+                        Logs logs groups asd ->
+                            let group = Logs.str_to_group new_potential_regex
+                                new_groups = (group::groups) in 
+                            ({ model | view_state = Logs logs new_groups asd }
+                            , saveGroups new_groups)
+                        _ -> ( model
+                             , Cmd.none)
                 Nothing ->
                     ( model
                     , alert <| "Invalid regex " ++ new_potential_regex)
         DeleteLogGroup group ->
             case model.view_state of
                 Logs logs groups current ->
-                    let new_state = Logs logs (List.filter (\g -> g.name /= group) groups) current
+                    let new_groups = (List.filter (\g -> g.name /= group) groups)
+                        new_state = Logs logs new_groups current
                     in
                         ({ model | view_state = new_state}
-                        , Cmd.none)
+                        , saveGroups new_groups)
                 _ -> ( model
                      , Cmd.none)
         SetLogAlarmy group new_alarmy ->
@@ -767,10 +771,33 @@ update msg model =
                     in
                         ({ model
                                | view_state = Logs a new_groups b}
-                        , Cmd.none)
+                        , saveGroups new_groups)
                 _ -> ( model
                      , Cmd.none)
-                           
+        LogGroupsSaved result ->
+            case result of
+                Ok _ -> 
+                    ( model
+                    , Cmd.none)
+                Err err ->
+                    ( model
+                    , alert <| "Saving groups failed " ++ (Debug.toString err))
+        GotLogGroups result ->
+            case result of
+                Ok groups ->
+                    let new_viewstate = 
+                            case model.view_state of
+                                Logs logs _ str -> Logs logs groups str
+                                _ -> model.view_state
+                    in
+                        ({ model
+                             | view_state = new_viewstate}
+                        , case model.view_state of
+                              Logs _ _ _ -> Cmd.none 
+                              _ -> alert "view state is wrong")
+                Err error -> 
+                    ( { model | view_state = ShowError (errToString error) }
+                    , alert "VIHRE")
                     
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings

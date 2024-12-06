@@ -37,8 +37,7 @@ listify group
                    else
                        div [] []]]
       , ul []
-          (List.map log_to_list group.members)
-      , div [ class "debug" ] [ text <| Debug.toString group]]
+          (List.map log_to_list group.members)]
 
 parseRegex: Group -> Maybe ParsedGroup
 parseRegex r =

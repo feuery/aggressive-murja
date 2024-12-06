@@ -225,6 +225,8 @@ type Msg
   | SaveLogGroup String
   | DeleteLogGroup String
   | SetLogAlarmy Logs.ParsedGroup Bool
+  | LogGroupsSaved (Result Http.Error ())
+  | GotLogGroups (Result Http.Error (List Logs.Group))
 
 -- ports
 port reallySetupAce : String -> Cmd msg

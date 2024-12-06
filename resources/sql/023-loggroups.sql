@@ -1,0 +1,5 @@
+CREATE TABLE blog.log_group
+(
+  ID SERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  alarmy BOOLEAN NOT NULL);

@@ -186,3 +186,14 @@ getAdminLogs =
     Http.get
         { url = "/api/logs"
         , expect = Http.expectJson GotAdminLogs (Json.list Logs.decoder)}
+
+saveGroups groups =
+    Http.post
+        { url = "/api/logs/groups"
+        , body = Http.jsonBody <| Logs.groupsEncoder groups
+        , expect = Http.expectWhatever LogGroupsSaved}
+
+getLogGroups =
+    Http.get
+        { url = "/api/logs/groups"
+        , expect = Http.expectJson GotLogGroups Logs.groupsDecoder}
