@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 
 import Http
+import Regex
 
 import Article
 import Article_view exposing (articleView)
@@ -20,6 +21,8 @@ import PostEditor
 import SettingsEditor
 import Medialist exposing (medialist)
 import Image
+import Logviewer
+import Logs
 import ImageSelector exposing (imageSelector)
 
 import DateTime exposing (DateTime)
@@ -715,11 +718,58 @@ update msg model =
         GotAdminLogs result ->
             case result of
                 Ok logs ->
-                    ({ model | view_state = Logs logs}
+                    ({ model | view_state = Logs logs [] ""}
                     , Cmd.none)
                 Err error ->
                     ( { model | view_state = ShowError (errToString error) }
                     , Cmd.none)
+        EditGroupRegexp new_regex ->
+            ((case model.view_state of
+                 Logs a b _ -> 
+                     { model | view_state = Logs a b new_regex}
+                 _ -> model)
+            , Cmd.none)
+        SaveLogGroup new_potential_regex ->
+            case Regex.fromString new_potential_regex of
+                Just _ ->
+                    let new_viewstate =
+                            case model.view_state of
+                                Logs logs groups _ ->
+                                    let group = Logs.str_to_group new_potential_regex
+                                        -- new_groups: List (Maybe Logs.Group)
+                                        new_groups = (group::groups)                                                
+                                    in 
+                                        Logs logs new_groups ""
+                                _ -> model.view_state
+                    in
+                        ({ model | view_state = new_viewstate}
+                        , Cmd.none)
+                Nothing ->
+                    ( model
+                    , alert <| "Invalid regex " ++ new_potential_regex)
+        DeleteLogGroup group ->
+            case model.view_state of
+                Logs logs groups current ->
+                    let new_state = Logs logs (List.filter (\g -> g.name /= group) groups) current
+                    in
+                        ({ model | view_state = new_state}
+                        , Cmd.none)
+                _ -> ( model
+                     , Cmd.none)
+        SetLogAlarmy group new_alarmy ->
+            case model.view_state of
+                Logs a groups b ->
+                    let new_groups = groups
+                                     |> List.map (\g ->
+                                                      if g.name == group.name then
+                                                          { g | alarmy = new_alarmy}
+                                                      else g)
+                    in
+                        ({ model
+                               | view_state = Logs a new_groups b}
+                        , Cmd.none)
+                _ -> ( model
+                     , Cmd.none)
                            
                     
 doGoHome_ model other_cmds =
@@ -798,9 +848,7 @@ blog_tab settings model =
             [pre [] [text err]]
         TaggedPostsView articles ->
             (List.map (articleView settings model.loginState model.zone) articles)
-        Logs logs ->
-         [ div [] [text <| "Logs " ++ Debug.toString logs]]
-
+        Logs logs groups current_group -> [ Logviewer.tab logs groups current_group ]
         -- ignored cases (that should maybe be removed from the enumeration?) that are inlined here to make compiler yell about new unimplemented enumerations
         PostEditorList _ -> unknown_state
         PostEditor -> unknown_state
@@ -832,11 +880,7 @@ settings_tab settings model =
     div []
         (case model.view_state of
             SettingsEditor -> [ SettingsEditor.editor settings]
-            _ -> [ div [] [ text "Unknown viewstate in settings_tab"] ])
-
-logs_tab settings model =
-    div []
-        [ text "Logs tab"]
+            _ -> [ div [] [ text "Unknown viewstate in settings_tab"] ])            
             
 posteditor_tab settings model =
     div [ class "posteditor-tab" ]
@@ -893,7 +937,7 @@ view model =
                                                  ["update-settings"])
                                            , ("SettingLogs"
                                              , TabEntry "Logs"
-                                                 (logs_tab settings model)
+                                                 (text "in the frontpage these views don't show up anywhere")
                                                  (Just (PushUrl "/blog/logs"))
                                                  ["update-settings"])
                                            , ("PostEditTab"

@@ -393,6 +393,17 @@ header {
     font-size: unset;
 }
 
+.loggroup-summary {
+    /* display: inline; */
+}
+
+.loggroup-summary-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 30%;
+}
+
 @media only screen and (max-device-width:480px)
 {
     body {

@@ -20,6 +20,7 @@ import File exposing (File)
 import UUID exposing (UUID)
 import Stack exposing (..)
 import Dict exposing (Dict)
+import Regex 
     
 type ViewState
     = PageView P.Page
@@ -32,7 +33,8 @@ type ViewState
     | TaggedPostsView (List Article.Article)
     | SettingsEditor
     | Feeds (List Feeds.Feed) Bool -- <- show_archived?
-    | Logs (List Logs.Log)
+                                   -- v- the second List will be parsed as List Regex later
+    | Logs (List Logs.Log) (List Logs.Group) String
 
 -- a simplified version of ViewState type for the main.elm's tabcomponent 
 type TabState
@@ -55,7 +57,7 @@ viewstate_to_tabstate vs =
         TaggedPostsView _ -> Blog
         SettingsEditor -> SettingsTab
         Feeds _ _ -> RssFeeds
-        Logs _ -> Blog
+        Logs _ _ _ -> Blog
 
 tabstate_to_str tb =
     case tb of
@@ -219,6 +221,10 @@ type Msg
   | CreateExcerptPost String UUID 
   | ExcerptCreated (String, String)
   | GotAdminLogs (Result Http.Error (List Logs.Log))
+  | EditGroupRegexp String
+  | SaveLogGroup String
+  | DeleteLogGroup String
+  | SetLogAlarmy Logs.ParsedGroup Bool
 
 -- ports
 port reallySetupAce : String -> Cmd msg
