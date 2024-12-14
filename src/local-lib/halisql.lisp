@@ -15,7 +15,7 @@
 						  (format nil "resources/sql/~a.sql" sql-file-name))))
     (slurp-utf-8 file-path)))
 
-(defparameter interesting-keywords (list "name:" "returns:"))
+(defparameter interesting-keywords (list "name:" "returns:" "count:"))
 
 (defun is-comment? (line)
   (str:starts-with? "--" line))
@@ -88,6 +88,7 @@
 			    (sql (get-sql query))
 			    (amount-of-params (amount-of-query-params sql))
 			    (name (first (gethash "name" meta)))
+			    (count (first (gethash "count" meta)))
 			    (returns (str:join #\Space (gethash "returns" meta)))
 			    (modifiers (gethash "modifiers" meta))
 			    (execute? (some (partial #'string= "@execute") modifiers))
@@ -95,22 +96,25 @@
 			    (fn (if execute?
 				    'postmodern:execute
 				    'postmodern:query))
-			    (params (loop for x from 1 to amount-of-params collect (gensym))))
+			    (params (loop for x from 1 to amount-of-params collect (gensym)))
+			    (f `(,fn ,sql 
+				     ,@params
+				     ,(if (not (string= "" returns))
+					  (let ((*read-eval* nil))
+					    (when *log*
+					      (format t "returns: ~a~%" (prin1-to-string returns)))
+					    (read-from-string (string-upcase returns)))
+					  (if (equalp fn 'postmodern:query)
+					      :rows
+					      :none)))))
 
 		       `(defun ,(intern (string-upcase name)) ,params
 			  (when *log* 
 			    (format t "running ~a~%" ,sql))
-			  (handler-case 
-			      (,fn ,sql 
-				,@params
-				,(if (not (string= "" returns))
-				     (let ((*read-eval* nil))
-				       (when *log*
-					 (format t "returns: ~a~%" (prin1-to-string returns)))
-				       (read-from-string (string-upcase returns)))
-				     (if (equalp fn 'postmodern:query)
-					 :rows
-					 :none)))
+			  (handler-case
+			      ,(if (equalp count "single")
+				   `(first (first ,f))
+				     f)
 			    (error (e)
 			      (format t "caught error in ~a~%~a~%" (quote ,(intern (string-upcase name)))
 				      e)
