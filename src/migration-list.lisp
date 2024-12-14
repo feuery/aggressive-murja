@@ -28,6 +28,7 @@
 (defmigration "021-more-rss-reader-stuff")
 (defmigration "022-fix-rss-cache")
 (defmigration "023-loggroups")
+(defmigration "024-loggroup-read-count")
 
 (defun prepare-e2e-migration ()
   (postmodern:execute "DELETE FROM blog.Users")

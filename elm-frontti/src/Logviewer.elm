@@ -25,7 +25,7 @@ listify group
       details []
       [ summary [ class "loggroup-summary" ] [
              span [ class "loggroup-summary-container" ]
-                 [ text <| group.name ++ " (" ++ (String.fromInt (List.length group.members)) ++ ")"
+                 [ text <| group.name ++ " (" ++ (String.fromInt (List.length group.members)) ++ ")" ++ (if group.sound_alarm then " ALERT!  " else "")
                  , if not is_ungrouped then
                        button [ onClick <| DeleteLogGroup group.name ] [ text "Delete log group" ]
                    else div [] []
@@ -42,7 +42,7 @@ listify group
 parseRegex: Group -> Maybe ParsedGroup
 parseRegex r =
     case Regex.fromString r.name of
-        Just rr -> Just (ParsedGroup r.name rr r.alarmy r.members)
+        Just rr -> Just (ParsedGroup r.name rr r.alarmy r.sound_alarm r.members)
         Nothing -> Nothing
 
 tab: List Log -> List Group -> String -> Html Msg
@@ -60,7 +60,7 @@ tab logs groups edited_group =
                    |> List.filter (\l -> regexes
                                       |> List.filter (\r -> Regex.contains r.regex l.row)
                                       |> (==) [])
-                   |> ParsedGroup "Ungrouped" Regex.never False 
+                   |> ParsedGroup "Ungrouped" Regex.never False False 
                    |> listify 
     in 
     div []

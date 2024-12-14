@@ -11,22 +11,24 @@ type alias Log =
 
 type alias Group =
     { name: String
-    , alarmy: Bool 
+    , alarmy: Bool
+    , sound_alarm: Bool               
     , members: List Log}
 
 type alias ParsedGroup =
     { name: String
     , regex: Regex
-    , alarmy: Bool 
+    , alarmy: Bool
+    , sound_alarm: Bool 
     , members: List Log}
 
 regex_to_parsedgroup str =
     case Regex.fromString str of
-        Just re -> Just <| ParsedGroup str re False []
+        Just re -> Just <| ParsedGroup str re False False []
         Nothing -> Nothing
                    
 str_to_group str =
-    Group str False []
+    Group str False False []
 
 parsedGroup_to_group pg =
     Group pg.name pg.alarmy pg.members
@@ -44,10 +46,12 @@ groupsEncoder groups =
 
 nameDecoder = Decode.field "name" Decode.string
 alarmyDecoder = Decode.field "alarmy" Decode.bool
+sound_alarm_decoder = Decode.field "sound-alarm" Decode.bool
 
 groupDecoder = Decode.succeed Group
                |> decodeApply nameDecoder
                |> decodeApply alarmyDecoder
+               |> decodeApply sound_alarm_decoder
                |> decodeApply (Decode.succeed [])
 
 groupsDecoder = Decode.list groupDecoder
