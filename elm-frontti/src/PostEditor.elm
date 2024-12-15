@@ -142,7 +142,7 @@ postEditor post tag showImageModal loadedImages draggingImages editorSettings ap
                                                else
                                                    "EditArticle") (Just user)
                     (Dict.fromList [ ("EditArticle"
-                                     , TabEntry "Edit article"
+                                     , TabEntry "Edit article" ""
                                          (editor [ id "editor-post-content"
                                                  , style "background-color" (if draggingImages then "#880088" else "")
                                                  , hijackOn "dragenter" (D.succeed EditorDragEnter)
@@ -153,7 +153,7 @@ postEditor post tag showImageModal loadedImages draggingImages editorSettings ap
                                                  , hijackOn "ready" (D.succeed (RunAce post.content))])
                                              Nothing ["*"])
                                    , ("PreviewArticle"
-                                     , TabEntry "Preview article"
+                                     , TabEntry "Preview article" ""
                                          (Article_view.articleView app_settings loginState tz post)
                                          Nothing ["*"])])
             _ -> div [] [text "You're not logged in"]]

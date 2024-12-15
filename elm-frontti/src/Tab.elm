@@ -9,7 +9,8 @@ import Message exposing (..)
 
 type alias TabEntry =
     { title: String
-    , component: Html Msg
+    , classes: String
+    , component: Html Msg               
     , onclick: Maybe Msg
     , permissions: List String}
 
@@ -36,10 +37,10 @@ tabs tab_id selected_tab usr tabentries =
                                let entry_ = Dict.get id tabentries in
                                case entry_ of
                                    Just entry -> 
-                                       li [ class (if selected_tab == id then "tab-header tab-selected" else "tab-header")
+                                       li [ class <| (if selected_tab == id then "tab-header tab-selected" else "tab-header") ++ " " ++ entry.classes 
                                           , onClick (case entry.onclick of
                                                          Just oc -> oc
-                                                         Nothing -> SelectTab tab_id id)] [ text entry.title]
+                                                         Nothing -> SelectTab tab_id id)] [ text <| entry.title ]
                                    Nothing -> li [] [ text "Unknown tab" ]))
         , case selected_tab_component of
               Just c -> c.component

@@ -197,3 +197,11 @@ getLogGroups =
     Http.get
         { url = "/api/logs/groups"
         , expect = Http.expectJson GotLogGroups Logs.groupsDecoder}
+
+getTopbarAlarms permissions =
+    if List.member "update-settings" permissions then
+        Http.get
+            { url = "/api/logs/alarm"
+            , expect = Http.expectJson GotTopbarLogAlarm Logs.topbarAlarmDecoder}
+    else
+        Cmd.none

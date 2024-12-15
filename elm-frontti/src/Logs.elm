@@ -55,3 +55,10 @@ groupDecoder = Decode.succeed Group
                |> decodeApply (Decode.succeed [])
 
 groupsDecoder = Decode.list groupDecoder
+
+type alias TopbarAlarm =
+    { alarm: Bool }
+
+alarmDecoder = Decode.field "alarm" Decode.bool
+topbarAlarmDecoder = Decode.succeed TopbarAlarm
+                   |> decodeApply alarmDecoder

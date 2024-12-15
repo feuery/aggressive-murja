@@ -137,7 +137,8 @@ type alias Model =
     , searchedPosts : List Article.PreviousArticle
     , new_feed: Maybe Feeds.NewFeed
     , feedReaderState: FeedReaderState
-    , feedMetadata: Maybe Feeds.FeedMetadata}
+    , feedMetadata: Maybe Feeds.FeedMetadata
+    , ringLogAlarm: Bool}
     
 type Msg
   = PageReceived (Result Http.Error P.Page)
@@ -227,10 +228,12 @@ type Msg
   | SetLogAlarmy Logs.ParsedGroup Bool
   | LogGroupsSaved (Result Http.Error ())
   | GotLogGroups (Result Http.Error (List Logs.Group))
+  | GotTopbarLogAlarm (Result Http.Error Logs.TopbarAlarm)
 
 -- ports
 port reallySetupAce : String -> Cmd msg
 port addImgToAce : String -> Cmd msg
+port alert : String -> Cmd msg
 
 -- dumb shit that would deserve its own module
 dangerouslySetInnerHTML: String -> Html.Attribute msg

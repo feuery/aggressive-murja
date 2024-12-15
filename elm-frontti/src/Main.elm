@@ -71,7 +71,7 @@ subscriptions _ = Sub.batch
                   , aceStateUpdate AceStateUpdate
                   , excerptCreated ExcerptCreated]
 
-initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc [] [] Nothing PerFeed Nothing
+initialModel url key viewstate = Model viewstate Nothing False False [] Nothing LoggedOut key url Nothing Time.utc [] [] Nothing PerFeed Nothing False
     
 viewStatePerUrl : Url.Url -> (ViewState, List (Cmd Msg))
 viewStatePerUrl url =
@@ -140,7 +140,6 @@ init _ url key =
 
 -- PORTS --
 port prompt : String -> Cmd msg
-port alert : String -> Cmd msg
 port showPreviousPostsModal: (() -> Cmd msg)
 port closePreviousPostsModal: (() -> Cmd msg)
 port showPreviousPostPreviewModal: (() -> Cmd msg)
@@ -230,9 +229,10 @@ update msg model =
                     if model.view_state == PostEditor then
                         ({ model | loginState = LoggedIn user 
                          , postEditorSettings = Nothing}
-                        , Cmd.none)
+                        , getTopbarAlarms user.permissions)
                     else 
-                        ({model | loginState = LoggedIn user}, Cmd.none)
+                        ({model | loginState = LoggedIn user}
+                        , getTopbarAlarms user.permissions)
                 Err error ->
                     case error of
                         Http.BadStatus status ->
@@ -797,7 +797,15 @@ update msg model =
                               _ -> alert "view state is wrong")
                 Err error -> 
                     ( { model | view_state = ShowError (errToString error) }
-                    , alert "VIHRE")
+                    , Cmd.none)
+        GotTopbarLogAlarm res ->
+            case res of
+                Ok alarm ->
+                    ({ model | ringLogAlarm = alarm.alarm}
+                    , Cmd.none)
+                Err error -> 
+                    ( { model | view_state = ShowError (errToString error) }
+                    , Cmd.none)
                     
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings
@@ -938,37 +946,38 @@ view model =
                                                                       LoggedIn usr -> Just usr
                                                                       _ -> Nothing)
                             (Dict.fromList [ ("Blog"
-                                             , TabEntry "Home"
+                                             , TabEntry "Home" ""
                                                  (blog_tab settings model)
                                                  (Just GoHome)
                                                  ["*"])
                                            , ("RssFeeds"
-                                             , TabEntry "RSS Feeds"
+                                             , TabEntry "RSS Feeds" ""
                                                  (rss_tab model settings)
                                                  (Just (PushUrl "/blog/feeds"))
                                                  ["create-post"] ) -- <- TODO make a real permission for rss
                                            , ("ManagePosts"
-                                             , TabEntry "Manage posts"
+                                             , TabEntry "Manage posts" ""
                                                  (postmanager_tab model)
                                                  (Just (PushUrl "/blog/postadmin"))
                                                  ["create-post", "delete-post", "edit-post"])
                                            , ("ManageMedia"
-                                             , TabEntry "Manage media"
+                                             , TabEntry "Manage media" ""
                                                  (mediamanager_tab model)
                                                  (Just (PushUrl "/blog/mediamanager"))
                                                  ["create-post", "delete-post", "edit-post"])
                                            , ("SettingsTab"
-                                             , TabEntry "Settings"
+                                             , TabEntry "Settings" ""
                                                  (settings_tab settings model)
                                                  (Just (PushUrl "/blog/settings"))
                                                  ["update-settings"])
                                            , ("SettingLogs"
-                                             , TabEntry "Logs"
+                                             , TabEntry ("Logs" ++ (if model.ringLogAlarm then " (!!!!!!)" else ""))
+                                                 (if model.ringLogAlarm then " alert " else "")
                                                  (text "in the frontpage these views don't show up anywhere")
                                                  (Just (PushUrl "/blog/logs"))
                                                  ["update-settings"])
                                            , ("PostEditTab"
-                                             , TabEntry "Post editor"
+                                             , TabEntry "Post editor" ""
                                                  (posteditor_tab settings model)
                                                  (Just GenNewPost)
                                              ["create-post", "edit-post"])])

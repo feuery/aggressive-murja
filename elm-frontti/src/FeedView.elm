@@ -74,9 +74,9 @@ feeds feedReaderState loginstate show_archived settings zone fs new_feed metadat
                                , onClick <| ShowArchivedFeedItems (not show_archived)] []
                        , text "Show read items"]
             , tabs "rss-feed-tab" (readerState_str feedReaderState) Nothing
-                  (Dict.fromList [ ("PerFeed", TabEntry "Group by feed" (perFeedView loginstate settings zone fs new_feed_state) Nothing ["*"])
-                                 , ("SingleFeed", TabEntry "Show all in a feed" (singleFeedView loginstate settings zone fs) Nothing ["*"])
-                                 , ("FeedManager", TabEntry "Manage feeds" (feedmanager settings.time_format zone fs) Nothing ["*"])])
+                  (Dict.fromList [ ("PerFeed", TabEntry "Group by feed" "" (perFeedView loginstate settings zone fs new_feed_state) Nothing ["*"])
+                                 , ("SingleFeed", TabEntry "Show all in a feed" "" (singleFeedView loginstate settings zone fs) Nothing ["*"])
+                                 , ("FeedManager", TabEntry "Manage feeds" "" (feedmanager settings.time_format zone fs) Nothing ["*"])])
                   
             , h3 [] [ text "Add new feed?"]
             , label [ for "name" ] [ text "Feed name" ]

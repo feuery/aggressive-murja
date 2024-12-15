@@ -117,7 +117,34 @@
 	    counts
 	    :initial-value (make-hash-table :test 'equal))))
 
+(defun get-alarmy-groups (user-id read-counts groups)
+  (let ((db-counts (db-counts user-id)))
+    (->>
+      groups
+      (remove-if-not (partial #'gethash "alarmy"))
+      (remove-if (lambda (group)
+		   (let ((name (gethash "name" group)))
+		     (= (or (gethash name db-counts) 0)
+			(gethash name read-counts)))))
+      (mapcar (partial #'gethash "name")))))
 
+(defroute get-log-alarms ("/api/logs/alarm" :method :get
+					    :decorators (@transaction
+							 @json
+							 @authenticated
+							 (@can? "update-settings"))) ()
+  ;; hopefully nobody would be stupid enough to cache apis like these
+  ;; but let's be sure 
+  (setf (hunchentoot:header-out "Cache-Control") "no-store")
+  
+  (let* ((user-id (gethash "id" *user*))
+	 (groups (get-groups))
+	 (read-counts (count-reads groups (get-logs)))
+	 (alarmy-groups (get-alarmy-groups user-id read-counts groups)))
+    (format nil "{\"alarm\": ~:[false~;true~]}" alarmy-groups)))
+
+	
+	  
 (defroute get-logs-groups ("/api/logs/groups" :method :get 
 					      :decorators (@transaction
 							   @json
@@ -127,15 +154,7 @@
     (assert user-id)
     (let* ((groups (get-groups))
 	   (read-counts (count-reads groups (get-logs)))
-	   (db-counts (db-counts user-id))
-	   (alarmy-groups (->>
-			    groups
-			    (remove-if-not (partial #'gethash "alarmy"))
-			    (remove-if (lambda (group)
-					 (let ((name (gethash "name" group)))
-					   (= (or (gethash name db-counts) 0)
-					      (gethash name read-counts)))))
-			    (mapcar (partial #'gethash "name")))))
+	   (alarmy-groups (get-alarmy-groups user-id read-counts groups)))
 
       (dolist (group groups)
 	(let ((name (gethash "name" group)))
