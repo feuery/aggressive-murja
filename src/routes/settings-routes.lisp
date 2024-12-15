@@ -146,8 +146,6 @@
       (dolist (k (alexandria:hash-table-alist read-counts))
 	(destructuring-bind (group . count) k
 	  (log:info "Updating ~a to ~d~%" group count)
-	  (if (readcount-exists? user-id group)
-	      (update-readcount* count user-id group)
-	      (insert-readcount* count user-id group))))
+	  (upsert-readcount* count user-id group)))
       
        (stringify groups))))
