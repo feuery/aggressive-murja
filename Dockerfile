@@ -1,4 +1,4 @@
-FROM ubuntu:jammy
+FROM ubuntu:noble
 COPY . /src
 RUN cd /src; \
     ls -la . ; \
