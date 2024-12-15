@@ -167,4 +167,4 @@
 	  (log:info "Updating ~a to ~d~%" group count)
 	  (upsert-readcount* count user-id group)))
       
-       (stringify groups))))
+       (stringify (or groups #())))))
