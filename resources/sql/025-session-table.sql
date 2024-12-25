@@ -13,7 +13,7 @@ CREATE TABLE blog.session_store
   session_key uuid not null, 
   var_name text not null,
   val text not null,
-  primary key (session_key, var_name),.
+  primary key (session_key, var_name),
   foreign key (session_key) references blog.serialized_session(session_key)
     on update cascade
     on delete cascade  
