@@ -1,7 +1,7 @@
 (defpackage :murja.users.user-db
   (:use :cl :postmodern)
   (:import-from :lisp-fixup :sha-512)
-  (:export :get-session-user-by-id :select-user-by-login :register-user)
+  (:export :get-session-user-by-id :get-user-by-id :select-user-by-login :register-user)
   (:import-from :halisql :defqueries))
 
 (in-package :murja.users.user-db)

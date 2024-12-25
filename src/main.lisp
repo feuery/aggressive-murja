@@ -7,6 +7,8 @@
 
 (in-package :murja)
 
+(defvar *server* nil)
+
 (defun stop-server ()
   (hunchentoot:stop *server*))
 
@@ -38,8 +40,9 @@
 (defun run ()
   "Starts up the aggressive-murja system. Sets logging up in a way that should show up in the logs view"
   (setf hunchentoot:*catch-errors-p* nil)
-  (bordeaux-threads:make-thread
-   (lambda ()
-     (murja:main))))
+  (let ((lisp-fixup:*dev?* t))
+    (bordeaux-threads:make-thread
+     (lambda ()
+       (murja:main)))))
 
 ;; (start-server :port 3010)

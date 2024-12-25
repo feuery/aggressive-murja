@@ -229,6 +229,7 @@ type Msg
   | LogGroupsSaved (Result Http.Error ())
   | GotLogGroups (Result Http.Error (List Logs.Group))
   | GotTopbarLogAlarm (Result Http.Error Logs.TopbarAlarm)
+  | SetDomain String
 
 -- ports
 port reallySetupAce : String -> Cmd msg

@@ -806,6 +806,11 @@ update msg model =
                 Err error -> 
                     ( { model | view_state = ShowError (errToString error) }
                     , Cmd.none)
+        SetDomain dm ->
+            ({ model | settings = Maybe.map (\settings ->
+                                                 { settings | domain = dm })
+                   model.settings}
+            , Cmd.none)
                     
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings

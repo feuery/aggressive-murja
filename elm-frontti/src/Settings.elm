@@ -10,17 +10,20 @@ type alias Settings =
     , blog_title : String
     , recent_post_count : Int
     , previously_label: String
+    , domain: String 
     }
 
-settingsDecoder = Decode.map4 Settings
+settingsDecoder = Decode.map5 Settings
                   (Decode.field "time-format" Decode.string)
                   (Decode.field "blog-title" Decode.string)
                   (Decode.field "recent-post-count" Decode.int)
                   (Decode.field "previously_label" Decode.string)
+                  (Decode.field "domain" Decode.string)
                      
 encodeSettings settings =
     object
         [ ( "time-format", string settings.time_format )
         , ( "blog-title", string settings.blog_title)
         , ( "recent-post-count", int settings.recent_post_count)
-        , ( "previously_label", string settings.previously_label) ]
+        , ( "previously_label", string settings.previously_label)
+        , ( "domain", string settings.domain)]

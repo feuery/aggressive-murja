@@ -2,7 +2,7 @@
 (in-package :asdf-user)
 
 (defsystem "aggressive-murja"
-  :version "3.0.0-devel"
+  :version "3.0.0"
   :author "Ilpo Lehtinen"
   :licence "GPLv3"
   :depends-on ("postmodern"
@@ -37,10 +37,12 @@
 		 (:file "migration-list")
 		 (:module "users"
 		  :components ((:file "user-db")))
+		 (:file "session-db")
 		 (:module "middleware"
 		  :components ((:file "json")
 			       (:file "db")
 			       (:file "auth")))
+		 (:file "session")
 		 (:module "posts"
 		  :components
 		  ((:file "post-db")))
