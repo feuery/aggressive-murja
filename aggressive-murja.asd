@@ -2,7 +2,7 @@
 (in-package :asdf-user)
 
 (defsystem "aggressive-murja"
-  :version "3.0.0-devel"
+  :version "3.0.0"
   :author "Ilpo Lehtinen"
   :licence "GPLv3"
   :depends-on ("postmodern"
@@ -26,7 +26,8 @@
 	       "xmls"
 	       ;; works in cl universal time (epoch at 1900)
 	       "cl-date-time-parser"
-	       "alexandria")
+	       "alexandria"
+	       "uuid")
   :description "A rewrite of the <a href=\"https://github.com/feuery/murja-blog/\">murja blogging engine</a> in lisp"
   :components ((:module "src"
 		:components
@@ -37,10 +38,12 @@
 		 (:file "migration-list")
 		 (:module "users"
 		  :components ((:file "user-db")))
+		 (:file "session-db")
 		 (:module "middleware"
 		  :components ((:file "json")
 			       (:file "db")
 			       (:file "auth")))
+		 (:file "session")
 		 (:module "posts"
 		  :components
 		  ((:file "post-db")))
@@ -75,7 +78,8 @@
 		((:file "literal")
 		 (:file "literal-test")
 		 (:file "tests")
-		 (:file "rss-tests"))))
+		 (:file "rss-tests")
+		 (:file "session-tests"))))
   :perform (test-op (op c)
 		    (eval (read-from-string "(fiveam:run! 'murja.tests:main-suite)"))))
 

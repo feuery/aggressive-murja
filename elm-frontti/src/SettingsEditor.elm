@@ -28,11 +28,17 @@ editor settings =
                 , value (String.fromInt settings.recent_post_count)
                 , type_ "number"] []
 
-        , label [ for "previously_label" ]
+        , label [ for "previously" ]
             [ text "Previously link label" ]
         , input [ id "previously"
                 , onInput SetPreviouslyLabel
-                , value settings.previously_label] []            
+                , value settings.previously_label] []
+            
+        , label [ for "domain" ]
+            [ text "Site domain (relevant for cookies)" ]
+        , input [ id "domain"
+                , onInput SetDomain
+                , value settings.domain] []
 
         , button [ onClick SaveSettings ]
             [ text "Save settings"]]

@@ -1,13 +1,17 @@
 (defpackage lisp-fixup
   (:use :cl)
   (:export :if-modified-since->simpledate-timestamp :*rfc822*
+	   :*dev?* :to-secs
 	   :fix-timestamp
+	   :*now*
    :sha-512 :partial
    :compose :drop
    :slurp-bytes :slurp-utf-8
    :range :range2))
 
 (in-package :lisp-fixup)
+
+(defvar *dev?* nil "True if we're running in dev")
 
 (defun sha-512 (str)
   (ironclad:byte-array-to-hex-string
@@ -148,3 +152,15 @@
 				 (parse-integer e)
 				 e))
 			   (list year month day h m sec)))))))))
+
+(defun to-secs (year month day hour min sec ms)
+  (+ (* year 31556926)
+     ;; a bad average-based approximation due to "a month" not being a constant  (calculated with: (round (/ 31556926 12)))
+     (* month 2629744)
+     (* day 86400)
+     (* hour 3600)
+     (* min 60)
+     sec
+     (round (/ ms 1000))))
+
+(defvar *now* nil)

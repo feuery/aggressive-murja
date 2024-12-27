@@ -108,9 +108,3 @@
     (setf rss2-hook nil)
     (setf amount-of-if-modified-sinces nil)
     (setf is-called nil)))
-
-;; (setf fiveam:*run-test-when-defined* t)
-
-(if (and (sb-ext:posix-getenv "GHA")
-	 (not (run! 'main-suite)))
-    (sb-ext:exit :code 666))
