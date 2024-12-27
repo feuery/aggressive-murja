@@ -19,7 +19,7 @@
   (assert *user*)
   (assert *session-key*)
   (let* ((user-id (gethash "id" *user*))
-	 (res (coerce (get-session-val* user-id key) 'list)))
+	 (res (coerce (get-session-val* (murja.session.db:now) user-id key) 'list)))
     (when res
       (gethash "val" (first res)))))
     

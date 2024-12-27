@@ -3,6 +3,7 @@
   (:export :if-modified-since->simpledate-timestamp :*rfc822*
 	   :*dev?* :to-secs
 	   :fix-timestamp
+	   :*now*
    :sha-512 :partial
    :compose :drop
    :slurp-bytes :slurp-utf-8
@@ -161,3 +162,5 @@
      (* min 60)
      sec
      (round (/ ms 1000))))
+
+(defvar *now* nil)

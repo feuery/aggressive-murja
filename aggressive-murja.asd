@@ -26,7 +26,8 @@
 	       "xmls"
 	       ;; works in cl universal time (epoch at 1900)
 	       "cl-date-time-parser"
-	       "alexandria")
+	       "alexandria"
+	       "uuid")
   :description "A rewrite of the <a href=\"https://github.com/feuery/murja-blog/\">murja blogging engine</a> in lisp"
   :components ((:module "src"
 		:components
@@ -77,7 +78,8 @@
 		((:file "literal")
 		 (:file "literal-test")
 		 (:file "tests")
-		 (:file "rss-tests"))))
+		 (:file "rss-tests")
+		 (:file "session-tests"))))
   :perform (test-op (op c)
 		    (eval (read-from-string "(fiveam:run! 'murja.tests:main-suite)"))))
 

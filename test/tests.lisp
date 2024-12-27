@@ -18,6 +18,7 @@
 (def-fixture prepare-db-and-server ()
   ;; easy-route handlers don't inherit this value as t in their environment if changed with only let here 
   (setf murja.middleware.db:*automatic-tests-on?* t)
+  (setf lisp-fixup:*dev?* t)
   (murja.middleware.db:with-db 
       (unwind-protect 
 	   (progn 
@@ -33,6 +34,7 @@
 	(postmodern:execute "DROP TABLE IF EXISTS public.migrations_tracker")
 	(hunchentoot:stop *test-server*)
 	(setf *test-server* nil)
+	(setf lisp-fixup:*dev?* nil)
 	(setf murja.middleware.db:*automatic-tests-on?* nil))))
 
 (def-test multiple-migrations (:fixture prepare-db-and-server)

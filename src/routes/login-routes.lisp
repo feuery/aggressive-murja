@@ -2,7 +2,7 @@
   (:use :cl)
   (:import-from :murja.session :set-session-value)
   (:import-from :lisp-fixup :sha-512)
-  (:import-from :murja.middleware.auth :@authenticated :*user*)
+  (:import-from :murja.middleware.auth :@test-now :@authenticated :*user*)
   (:import-from :murja.middleware.db :@transaction)
    
   (:import-from :murja.middleware.json :@json)
@@ -13,20 +13,21 @@
 
 (defun get-session-key (username)
   "Creates a new db-backed session for new logins"
-  (let ((old-session (murja.session.db:login-query-session* username)))
+  (let ((old-session (murja.session.db:login-query-session* (murja.session.db:now) username)))
     (when old-session
       (log:error "~a tried to log in with an existing session" username))
     
     (unless old-session
-      (let* ((session-data (first (coerce (murja.session.db:insert-session* username) 'list)))
+      (let* ((session-data (first (coerce (murja.session.db:insert-session* (murja.session.db:now) username) 'list)))
 	     (key (gethash "session_key" session-data))
 	     (max-age (gethash "max_age" session-data)))
 	(multiple-value-bind (year month day hour min sec ms)
 	    (simple-date:decode-interval max-age)
 	  (values key (lisp-fixup:to-secs year month day hour min sec ms)))))))
 
-(defroute post-login ("/api/login/login" :method :post :decorators (@transaction @json)) ()
-  (let* ((body-params (parse (hunchentoot:raw-post-data :force-text t)))
+(defroute post-login ("/api/login/login" :method :post :decorators (@test-now @transaction @json)) ()
+  (let* ((body (hunchentoot:raw-post-data :force-text t))
+	 (body-params (parse body))
 	 (username (gethash "username" body-params))
 	 (password (gethash "password" body-params))
 	 (user-row (murja.users.user-db:select-user-by-login username (sha-512 password))))
@@ -68,7 +69,8 @@
 	  (setf (hunchentoot:return-code*) 401)
 	  "not authorized"))))
 
-(defroute api-session ("/api/login/session" :method :get :decorators (@transaction
+(defroute api-session ("/api/login/session" :method :get :decorators (@test-now
+								      @transaction
 								      @json
 								      @authenticated)) ()
   (if *user*
