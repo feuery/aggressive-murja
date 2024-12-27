@@ -25,8 +25,9 @@
 	(setf (hunchentoot:session-value (kw k)) v)
 
 	;; want these logs only in dev
-	(when lisp-fixup:*dev?*
-	  (log:info "populating session var from db ~a => ~a" k v))))))
+	(if lisp-fixup:*dev?*
+	    (log:info "populating session var from db ~a => ~a" k v)
+	    (log:info "populating session var from db ~a" k))))))
 
 (defun @authenticated (next &key (retries 0))
   (let ((session-cookie (hunchentoot:cookie-in "murja-session"))
@@ -41,11 +42,13 @@
 	;; it from the db and retry calling this middleware function. If retries > 0 and
 	;; restoring-from-db has failed, we're returning 401 to the caller.
 	(if (murja.session.db:assert-ownership-username username-cookie session-cookie)
-	    (progn 
+	    (progn
+	      (log:info "populating http-session and retrying")
 	      (populate-http-session username-cookie session-cookie)
 	      (@authenticated next :retries (1+ retries)))
 	    (progn 
 	      (setf (hunchentoot:return-code*) 401)
+	      (log:warn "assert-ownership-username failed for ~a" username-cookie)
 	      "not authorized"))
 	(if user-id
 	    (let ((user (get-user-by-id user-id)))
@@ -60,7 +63,10 @@
 		    "not authorized")))
 	    (progn
 	      (setf (hunchentoot:return-code*) 401)
-	      (log:warn "failed auth at @authenticated")
+	      (log:warn "failed auth at @authenticated, ~a" (list :retries retries
+								  :session-cookie session-cookie
+								  :username-cookie username-cookie
+								  :user-id user-id))
 	      "not authorized")))))
 
 (defun @can? (ability next)
