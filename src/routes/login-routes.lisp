@@ -13,17 +13,22 @@
 
 (defun get-session-key (username)
   "Creates a new db-backed session for new logins"
-  (let ((old-session (murja.session.db:login-query-session* (murja.session.db:now) username)))
-    (when old-session
-      (log:error "~a tried to log in with an existing session" username))
-    
-    (unless old-session
-      (let* ((session-data (first (coerce (murja.session.db:insert-session* (murja.session.db:now) username) 'list)))
-	     (key (gethash "session_key" session-data))
-	     (max-age (gethash "max_age" session-data)))
-	(multiple-value-bind (year month day hour min sec ms)
-	    (simple-date:decode-interval max-age)
-	  (values key (lisp-fixup:to-secs year month day hour min sec ms)))))))
+  (let ((old-sessions (coerce (murja.session.db:login-query-session* (murja.session.db:now) username) 'list)))
+    (if old-sessions
+	;; logging in from a new device? return the old session-key and expiration
+	(let* ((session-key (gethash "session_key" (first old-sessions)))
+	       (age (gethash "max_age" (first old-sessions))))
+	  (multiple-value-bind (year month day hour min sec ms)
+	      (simple-date:decode-interval age)
+	    (values session-key (lisp-fixup:to-secs year month day hour min sec ms))))
+	
+	;; a fresh session!
+	(let* ((session-data (first (coerce (murja.session.db:insert-session* (murja.session.db:now) username) 'list)))
+	       (key (gethash "session_key" session-data))
+	       (max-age (gethash "max_age" session-data)))
+	  (multiple-value-bind (year month day hour min sec ms)
+	      (simple-date:decode-interval max-age)
+	    (values key (lisp-fixup:to-secs year month day hour min sec ms)))))))
 
 (defroute post-login ("/api/login/login" :method :post :decorators (@test-now @transaction @json)) ()
   (let* ((body (hunchentoot:raw-post-data :force-text t))

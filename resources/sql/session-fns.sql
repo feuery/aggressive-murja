@@ -18,8 +18,8 @@ join blog.users usr on ss.owner = usr.id
 where usr.username = $2 AND ss.session_key = $3 AND $1 < ss.expires_at;
 
 -- name: login-query-session*
--- count: single
-select ss.session_key
+-- returns: :array-hash
+select ss.session_key, ss.expires_at - $1 AS max_age
 from blog.serialized_session ss
 join blog.users usr on ss.owner = usr.id 
 where usr.username = $2 AND $1 < ss.expires_at;
