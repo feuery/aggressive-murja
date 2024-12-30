@@ -127,3 +127,5 @@
 
 (defroute sdfdsfopsf ("/blog/feeds" :method :get) ()
   *root*)
+
+(defroute kgvfokgf ("/blog/usersettings" :method :get) () *root*)

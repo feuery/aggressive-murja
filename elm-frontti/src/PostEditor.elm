@@ -21,9 +21,9 @@ import Dict exposing (Dict)
 import File exposing (File)
 import File.Select as Select
 
-dropDecoder : D.Decoder Msg
-dropDecoder =
-  D.at ["dataTransfer","files"] (D.oneOrMore GotFiles File.decoder)
+-- dropDecoder : D.Decoder Msg
+dropDecoder handler =
+  D.at ["dataTransfer","files"] (D.oneOrMore (GotFiles handler) File.decoder )
 
 
 hijackOn : String -> D.Decoder msg -> Attribute msg
@@ -149,7 +149,7 @@ postEditor post tag showImageModal loadedImages draggingImages editorSettings ap
                                                  , hijackOn "dragend" (D.succeed EditorDragLeave)
                                                  , hijackOn "dragover" (D.succeed EditorDragEnter)
                                                  , hijackOn "dragleave" (D.succeed EditorDragLeave)
-                                                 , hijackOn "drop" dropDecoder
+                                                 , hijackOn "drop" (dropDecoder postPicture)
                                                  , hijackOn "ready" (D.succeed (RunAce post.content))])
                                              Nothing ["*"])
                                    , ("PreviewArticle"

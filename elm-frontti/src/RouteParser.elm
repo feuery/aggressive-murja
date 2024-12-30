@@ -17,6 +17,7 @@ type Route
     | Home
     | Logs 
     | NotFound
+    | OwnUserSettings
 
 routeParser =
     oneOf
@@ -31,7 +32,9 @@ routeParser =
         , map TaggedPosts (s "blog" </> (s "tags" </> string))
         , map Logs (s "blog" </> (s "logs"))
         , map PostAdmin (s "blog" </> (s "postadmin"))
-        , map FeedReader (s "blog" </> (s "feeds"))]
+        , map FeedReader (s "blog" </> (s "feeds"))
+        , map OwnUserSettings (s "blog" </> (s "usersettings"))]
+        
 
 url_to_route url =
             Maybe.withDefault NotFound (parse routeParser url)

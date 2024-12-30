@@ -205,3 +205,9 @@ getTopbarAlarms permissions =
             , expect = Http.expectJson GotTopbarLogAlarm Logs.topbarAlarmDecoder}
     else
         Cmd.none
+
+submitUser user oldpasswd newpasswd = 
+    Http.post
+        { url = "/api/user/submit"
+        , body = Http.jsonBody (User.encodeEditorUser user oldpasswd newpasswd)
+        , expect = Http.expectWhatever UserSubmitResult}

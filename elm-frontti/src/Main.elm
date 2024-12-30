@@ -48,6 +48,7 @@ import File exposing (mime)
 import FeedView
 import Feeds exposing (NewFeed)
 import Tab exposing (..)
+import UserEditor
 
 -- MAIN
 
@@ -126,6 +127,10 @@ viewStatePerUrl url =
                               , getAdminLogs
                               , getTitles
                               , getLogGroups])
+        RouteParser.OwnUserSettings -> ( UserSettings "" "" Nothing
+                                       , [ getSettings
+                                         , getSession
+                                         , getTitles])
 
 init _ url key =
     let (viewstate, cmds) = (viewStatePerUrl url)
@@ -226,13 +231,19 @@ update msg model =
         GotSession result ->
             case result of
                 Ok user ->
-                    if model.view_state == PostEditor then
-                        ({ model | loginState = LoggedIn user 
-                         , postEditorSettings = Nothing}
-                        , getTopbarAlarms user.permissions)
-                    else 
-                        ({model | loginState = LoggedIn user}
-                        , getTopbarAlarms user.permissions)
+                    case model.view_state of
+                        PostEditor -> 
+                            ({ model | loginState = LoggedIn user 
+                             , postEditorSettings = Nothing}
+                            , getTopbarAlarms user.permissions)
+                        UserSettings oldpwd newpwd _ ->
+                            ( { model
+                                  | loginState = LoggedIn user
+                                  , view_state = UserSettings oldpwd newpwd (Just user)}
+                            , getTopbarAlarms user.permissions)                                  
+                        _ ->
+                            ({model | loginState = LoggedIn user}
+                            , getTopbarAlarms user.permissions)
                 Err error ->
                     case error of
                         Http.BadStatus status ->
@@ -352,10 +363,10 @@ update msg model =
         EditorDragLeave ->
             ( {model | draggingImages = False}
             , Cmd.none)
-        GotFiles file files ->
+        GotFiles sendPicture file files ->
             if String.startsWith "image" (mime file) then
                 ( { model | draggingImages = False }
-                , postPicture file)
+                , sendPicture file)
             else
                 ( { model | draggingImages = False }
                 , alert ("Got " ++ (mime file) ++ ", expected an image"))
@@ -811,6 +822,58 @@ update msg model =
                                                  { settings | domain = dm })
                    model.settings}
             , Cmd.none)
+        SetUsername usrname ->
+            case model.view_state of
+                UserSettings oldpwd newpwd usr ->
+                    ({ model
+                         | view_state = UserSettings oldpwd newpwd (Maybe.map (\old_usr ->
+                                                                                   {old_usr | username = usrname}) usr)}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetNickname new_nickname ->
+            case model.view_state of
+                UserSettings oldpwd newpwd usr ->
+                    ({ model
+                         | view_state = UserSettings oldpwd newpwd (Maybe.map (\old_usr ->
+                                                                                   {old_usr | nickname = new_nickname}) usr)}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetNewpwd newpwd ->
+            case model.view_state of
+                UserSettings oldpwd _ usr ->
+                    ({ model
+                         | view_state = UserSettings oldpwd newpwd usr}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetOldpwd oldpwd ->
+            case model.view_state of
+                UserSettings _ newpwd usr ->
+                    ({ model
+                         | view_state = UserSettings oldpwd newpwd usr}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SubmitChangedUser oldpasswd newpasswd user ->
+            -- TODO implement 
+            case model.loginState of
+                LoggedIn usr ->
+                    ( model
+                    , if usr.id == user.id then
+                          submitUser user oldpasswd newpasswd  
+                      else
+                          Cmd.none)
+                _ -> ( model
+                     , Cmd.none)
+        UserSubmitResult r ->
+            case r of
+                Ok _ ->
+                    ( model
+                    , Cmd.batch [ getSettings
+                                , getSession
+                                , getTitles])
+                Err error ->
+                    ( { model | view_state = ShowError (errToString error) }
+                    , Cmd.none)
+                            
                     
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings
@@ -823,8 +886,6 @@ doGoHome_ model other_cmds =
 doGoHome model = doGoHome_ model []
 
 -- VIEW
-
-
 
 sidebarHistory : List Article.Title -> Html Msg
 sidebarHistory titles =
@@ -895,7 +956,10 @@ blog_tab settings model =
         MediaList -> unknown_state
         SettingsEditor -> unknown_state
         Feeds _ _ -> unknown_state
-         
+        UserSettings oldpasswd newpasswd usr_ -> case usr_ of
+                                 Just usr -> [ UserEditor.editor model.draggingImages oldpasswd newpasswd usr
+                                             , div [] [ text <| "usr: " ++ (Debug.toString usr) ]]
+                                 Nothing -> [ div [] [ text "Can't change user settings when there's no user"]]
     )
 
 rss_tab model settings =
@@ -986,7 +1050,7 @@ view model =
                                                  (posteditor_tab settings model)
                                                  (Just GenNewPost)
                                              ["create-post", "edit-post"])])
-                      , div [id "sidebar"] [ User.loginView model.loginState
+                      , div [id "sidebar"] [ UserEditor.loginView model.loginState
                                            , (sidebarHistory model.titles )
                                            , (case model.view_state of
                                                   PostEditorList titles -> PostsAdmin.tagList titles
