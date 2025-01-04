@@ -968,8 +968,7 @@ blog_tab settings model =
         SettingsEditor -> unknown_state
         Feeds _ _ -> unknown_state
         UserSettings oldpasswd newpasswd usr_ -> case usr_ of
-                                 Just usr -> [ UserEditor.editor model.draggingImages oldpasswd newpasswd usr
-                                             , div [] [ text <| "usr: " ++ (Debug.toString usr) ]]
+                                 Just usr -> [ UserEditor.editor model.draggingImages oldpasswd newpasswd usr]
                                  Nothing -> [ div [] [ text "Can't change user settings when there's no user"]]
     )
 
