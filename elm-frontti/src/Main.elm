@@ -373,7 +373,7 @@ update msg model =
         GotInputFiles files ->
             if List.all (\file -> String.startsWith "image" (mime file)) files then
                 ( model
-                , Cmd.batch (List.map (\file -> postPicture file) files))
+                , Cmd.batch (List.map (\file -> postPicture UploadedImage PostEditor.editor_image_api file) files))
             else
                 ( model
                 , alert ("Expected images, got " ++ (String.join ", " (List.map mime files))))
@@ -865,6 +865,17 @@ update msg model =
                      , Cmd.none)
         UserSubmitResult r ->
             case r of
+                Ok _ ->
+                    ( model
+                    , Cmd.batch [ getSettings
+                                , getSession
+                                , getTitles])
+                Err error ->
+                    ( { model | view_state = ShowError (errToString error) }
+                    , Cmd.none)
+        UploadedOwnProfilePic r ->
+            case r of
+                -- we're not really interested in the return value more than "is it 2xx instead of 4xx or 5xx?", we're just as api-compatible with the posteditor's image upload functionality as possible
                 Ok _ ->
                     ( model
                     , Cmd.batch [ getSettings

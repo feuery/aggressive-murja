@@ -51,3 +51,8 @@ SET nickname = $1,
     username = $2,
     password = $3
 WHERE id = $4;
+
+-- name: patch-user-img*
+UPDATE blog.Users
+SET img_location = $1
+WHERE id = $2;

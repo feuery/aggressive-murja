@@ -1,10 +1,12 @@
 (defpackage murja.routes.user-editor
   (:use :cl)
   (:import-from :murja.json :bind-json)
+  (:import-from :cl-hash-util :with-keys :hash)
   (:import-from :lisp-fixup :sha-512)
   (:import-from :murja.middleware.db :@transaction)
   (:import-from :murja.middleware.json :@json)
   (:import-from :murja.middleware.auth :@authenticated :@can? :*user*)
+  (:import-from :murja.media.media-db :insert-media)
   (:import-from :com.inuoe.jzon :stringify :parse)
   (:import-from :easy-routes :defroute)
 
@@ -60,4 +62,19 @@
 	  (setf (hunchentoot:return-code*) 500)
 	  ""))))
 
-	
+(defroute submit-profile-pic ("/api/pictures/profile" :method :post
+						      :decorators (@transaction
+								   @authenticated
+								   @json))
+    (&post file)
+
+  (with-keys ("id" "username") *user*
+    (destructuring-bind (tmp-file filename mime) file
+      (when (str:starts-with? "image/" mime)
+	(log:info "Changing profile pic of ~a to ~a" username filename)
+	(let* ((bytes (lisp-fixup:slurp-bytes tmp-file))
+	       (result (insert-media filename bytes))
+	       (img-id (caar result)))
+
+	  (user-db:patch-user-img* (format nil "/api/pictures/~a" img-id) id)
+	  (stringify (hash (:id img-id))))))))

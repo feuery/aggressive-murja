@@ -149,7 +149,7 @@ postEditor post tag showImageModal loadedImages draggingImages editorSettings ap
                                                  , hijackOn "dragend" (D.succeed EditorDragLeave)
                                                  , hijackOn "dragover" (D.succeed EditorDragEnter)
                                                  , hijackOn "dragleave" (D.succeed EditorDragLeave)
-                                                 , hijackOn "drop" (dropDecoder postPicture)
+                                                 , hijackOn "drop" (dropDecoder (postPicture UploadedImage editor_image_api))
                                                  , hijackOn "ready" (D.succeed (RunAce post.content))])
                                              Nothing ["*"])
                                    , ("PreviewArticle"
@@ -157,3 +157,5 @@ postEditor post tag showImageModal loadedImages draggingImages editorSettings ap
                                          (Article_view.articleView app_settings loginState tz post)
                                          Nothing ["*"])])
             _ -> div [] [text "You're not logged in"]]
+
+editor_image_api = "/api/pictures"    

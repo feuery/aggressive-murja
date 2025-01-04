@@ -245,7 +245,7 @@ type Msg
   | SetOldpwd String
   | SubmitChangedUser String String LoginUser
   | UserSubmitResult (Result Http.Error ())
-
+  | UploadedOwnProfilePic (Result Http.Error Image.PostImageResponse)
 -- ports
 port reallySetupAce : String -> Cmd msg
 port addImgToAce : String -> Cmd msg

@@ -5,13 +5,10 @@ import Html.Attributes as A exposing (..)
 import Html.Events exposing (..)
 
 import Message exposing (..)
-import PostEditor exposing (hijackOn)
+import PostEditor exposing (hijackOn, dropDecoder)
+import Ajax_cmds exposing (postPicture)
 
 import Json.Decode as D
-
--- dropDecoder : Decode.Decoder Msg
--- dropDecoder =
---   Decode.at ["dataTransfer","files"] (Decode.oneOrMore GotNewUserImg File.decoder)
 
 editor draggingImages oldpasswd newpasswd user =
     div [] [
@@ -20,10 +17,12 @@ editor draggingImages oldpasswd newpasswd user =
              , hijackOn "dragend" (D.succeed EditorDragLeave)
              , hijackOn "dragover" (D.succeed EditorDragEnter)
              , hijackOn "dragleave" (D.succeed EditorDragLeave)
+             , hijackOn "drop" (dropDecoder (postPicture UploadedOwnProfilePic "/api/pictures/profile"))
              , style "background-color" (if draggingImages then "#880088" else "")
              ]
              [ h1 [ ] [text <| "User " ++ user.nickname ++ "'s settings" ]
-             , img [ src user.img_location ] []
+             , img [ src user.img_location
+                   , class "user_avatar"  ] []
              , div [ id "img-helper"] [ text "If you want a new profile picture, drag and drop an image file here" ]
              , label [] [ text "Username: "
                         , input [ A.required True
