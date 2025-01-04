@@ -6,6 +6,7 @@ SELECT
   u.username,
   u.nickname,
   u.img_location,
+  u.password,
   json_agg(DISTINCT perm.action) "permissions"
 FROM
   blog.users u
@@ -39,9 +40,14 @@ JOIN blog.permission perm ON perm.id = gp.permissionid
 WHERE u.id = $1
 GROUP BY u.Username, u.Nickname, u.Img_location, ug.Name, gm.PrimaryGroup, u.ID;
 
--- name: can?*
--- :? :1
-SELECT COUNT(perm.ACTION) > 0 AS "can?"
-FROM blog.GroupPermissions gp 
-LEFT JOIN blog.Permission perm ON gp.PermissionID = perm.ID
-WHERE gp.GroupID = :group-id AND perm.action = :action;
+-- name: search-with-id-and-pwd*
+SELECT *
+FROM blog.Users u
+WHERE u.id = $1 AND u.password = $2;
+
+-- name: patch-user*
+UPDATE blog.Users
+SET nickname = $1,
+    username = $2,
+    password = $3
+WHERE id = $4;
