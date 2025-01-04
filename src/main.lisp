@@ -40,9 +40,12 @@
 (defun run ()
   "Starts up the aggressive-murja system. Sets logging up in a way that should show up in the logs view"
   (setf hunchentoot:*catch-errors-p* nil)
-  (let ((lisp-fixup:*dev?* t))
-    (bordeaux-threads:make-thread
-     (lambda ()
-       (murja:main)))))
+  ;; for reasons I don't understand user-editor.lisp doesn't see *dev*? as t when let-bound here
+  (setf lisp-fixup:*dev?* t)
+  (log:info "Starting murja in *dev?* mode")
+  
+  (bordeaux-threads:make-thread
+   (lambda ()
+     (murja:main))))
 
 ;; (start-server :port 3010)

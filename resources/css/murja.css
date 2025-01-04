@@ -408,6 +408,16 @@ header {
     color: #F00;
 }
 
+.vertical-flex-container > label {
+    height: 2em;
+}
+
+input:required {
+    border-color: #ff0;
+    border-width: 0.3em;
+    border-radius: 10px;
+}
+
 @media only screen and (max-device-width:480px)
 {
     body {

@@ -1,5 +1,6 @@
 (defpackage murja.session
   (:use :cl)
+  (:export :set-session-value :get-session-value)
   (:import-from :murja.session.db :assert-ownership :set-session-val* :get-session-val*)
   (:import-from :murja.middleware.auth :*user* :*session-key*))
 

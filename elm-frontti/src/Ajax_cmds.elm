@@ -78,10 +78,10 @@ getListOfImages managerCalled = Http.get
                   , expect = Http.expectJson (GotListOfImages managerCalled) (Json.list Image.imageDecoder)}
 
 
-postPicture pictureFile = Http.post 
-                          { url = "/api/pictures"
+postPicture handler_msg url pictureFile = Http.post 
+                          { url = url
                           , body = Http.multipartBody [ Http.filePart "file" pictureFile ]
-                          , expect = Http.expectJson UploadedImage Image.imageResponseDecoder }
+                          , expect = Http.expectJson handler_msg Image.imageResponseDecoder }
 
 
 deletePictures ids = Http.request
@@ -205,3 +205,9 @@ getTopbarAlarms permissions =
             , expect = Http.expectJson GotTopbarLogAlarm Logs.topbarAlarmDecoder}
     else
         Cmd.none
+
+submitUser user oldpasswd newpasswd = 
+    Http.post
+        { url = "/api/user/submit"
+        , body = Http.jsonBody (User.encodeEditorUser user oldpasswd newpasswd)
+        , expect = Http.expectWhatever UserSubmitResult}

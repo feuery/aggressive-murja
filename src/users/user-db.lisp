@@ -1,7 +1,7 @@
 (defpackage :murja.users.user-db
   (:use :cl :postmodern)
   (:import-from :lisp-fixup :sha-512)
-  (:export :get-session-user-by-id :get-user-by-id :select-user-by-login :register-user)
+  (:export :patch-user-img* :get-session-user-by-id :search-with-id-and-pwd* :get-user-by-id :select-user-by-login :register-user :patch-user)
   (:import-from :halisql :defqueries))
 
 (in-package :murja.users.user-db)
@@ -41,3 +41,7 @@
 			  (sha-512 password))))
 
   ;;(postmodern:connect-toplevel "blogdb" "blogadmin" "blog" "localhost")
+
+(defun patch-user (usr)
+  (cl-hash-util:with-keys ("nickname" "username" "password" "id") usr
+    (patch-user* nickname username password id)))

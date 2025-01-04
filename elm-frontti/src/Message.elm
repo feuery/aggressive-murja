@@ -35,6 +35,13 @@ type ViewState
     | Feeds (List Feeds.Feed) Bool -- <- show_archived?
                                    -- v- the second List will be parsed as List Regex later
     | Logs (List Logs.Log) (List Logs.Group) String
+    | UserSettings
+      -- oldpwd 
+      String
+      -- newpwd 
+      String
+      -- the view's user we're editing instead of the LoginState's user who is logged in here 
+      (Maybe LoginUser)
 
 -- a simplified version of ViewState type for the main.elm's tabcomponent 
 type TabState
@@ -58,6 +65,7 @@ viewstate_to_tabstate vs =
         SettingsEditor -> SettingsTab
         Feeds _ _ -> RssFeeds
         Logs _ _ _ -> Blog
+        UserSettings _ _ _ -> Blog
 
 tabstate_to_str tb =
     case tb of
@@ -97,6 +105,7 @@ type alias LoginUser =
     , img_location : String
     , primary_group_name : String
     , permissions : List String
+    , id: Int                   --unique and immutable key, needed because UserEditor.editor lets user change all the other values
     }
 
 type alias MediaListState =
@@ -173,7 +182,7 @@ type Msg
   | SelectedImage UUID
   | EditorDragEnter
   | EditorDragLeave
-  | GotFiles File (List File)
+  | GotFiles (File.File -> Cmd Msg) File (List File) 
   | GotInputFiles (List File)
   | UploadedImage (Result Http.Error Image.PostImageResponse)
   | MarkImageForRemoval UUID
@@ -230,7 +239,13 @@ type Msg
   | GotLogGroups (Result Http.Error (List Logs.Group))
   | GotTopbarLogAlarm (Result Http.Error Logs.TopbarAlarm)
   | SetDomain String
-
+  | SetUsername String
+  | SetNickname String
+  | SetNewpwd String
+  | SetOldpwd String
+  | SubmitChangedUser String String LoginUser
+  | UserSubmitResult (Result Http.Error ())
+  | UploadedOwnProfilePic (Result Http.Error Image.PostImageResponse)
 -- ports
 port reallySetupAce : String -> Cmd msg
 port addImgToAce : String -> Cmd msg

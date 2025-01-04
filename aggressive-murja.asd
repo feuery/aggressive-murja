@@ -27,14 +27,16 @@
 	       ;; works in cl universal time (epoch at 1900)
 	       "cl-date-time-parser"
 	       "alexandria"
-	       "uuid")
+	       "uuid"
+	       "cl-hash-util")
   :description "A rewrite of the <a href=\"https://github.com/feuery/murja-blog/\">murja blogging engine</a> in lisp"
   :components ((:module "src"
 		:components
 		((:module "local-lib"
 		  :components ((:file "lisp-fixup")
 			       (:file "halisql")
-			       (:file "migrations")))
+			       (:file "migrations")
+			       (:file "json")))
 		 (:file "migration-list")
 		 (:module "users"
 		  :components ((:file "user-db")))
@@ -64,6 +66,7 @@
 		   (:file "media-routes")
 		   (:file "rss-routes")
 		   (:file "rss-reader-routes")
+		   (:file "user-editor")
 		   (:file "root-routes")))
 		 (:file "main"))))
   :in-order-to ((test-op (test-op "aggressive-murja/tests"))))

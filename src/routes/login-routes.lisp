@@ -1,5 +1,6 @@
 (defpackage murja.routes.login-routes
   (:use :cl)
+  (:export :get-session-key :set-session-cookies)
   (:import-from :murja.session :set-session-value)
   (:import-from :lisp-fixup :sha-512)
   (:import-from :murja.middleware.auth :@test-now :@authenticated :*user*)
@@ -30,6 +31,26 @@
 	      (simple-date:decode-interval max-age)
 	    (values key (lisp-fixup:to-secs year month day hour min sec ms)))))))
 
+(defun set-session-cookies (username session-key max-age settings)
+  (hunchentoot:set-cookie "murja-username" :value username
+					   :secure t
+					   :path "/"
+					   :max-age max-age 
+					   :http-only t
+					   :domain ;;send :domain only in linux production envs
+					   (unless lisp-fixup:*dev?*
+					     (gethash "domain" settings))
+					   :same-site "Strict")
+  
+  (hunchentoot:set-cookie "murja-session" :value session-key
+					  :secure t
+					  :path "/"
+					  :max-age max-age 
+					  :http-only t
+					  :domain (unless lisp-fixup:*dev?*
+						    (gethash "domain" settings))
+					  :same-site "Strict"))
+
 (defroute post-login ("/api/login/login" :method :post :decorators (@test-now @transaction @json)) ()
   (let* ((body (hunchentoot:raw-post-data :force-text t))
 	 (body-params (parse body))
@@ -47,22 +68,7 @@
 		(set-session-value :logged-in-username username)
 		(set-session-value :logged-in-user-id (gethash "userid" user-row))
 		
-		(hunchentoot:set-cookie "murja-username" :value username
-							 :secure t
-							 :max-age max-age 
-							 :http-only t
-							 :domain ;;send :domain only in linux production envs
-							 (unless lisp-fixup:*dev?*
-							   (gethash "domain" settings))
-							 :same-site "Strict")
-		
-		(hunchentoot:set-cookie "murja-session" :value session-key
-							:secure t
-							:max-age max-age 
-							:http-only t
-							:domain (unless lisp-fixup:*dev?*
-								  (gethash "domain" settings))
-							:same-site "Strict")
+		(set-session-cookies username session-key max-age settings)
 	        
 		(stringify user-row))
 	      (progn
