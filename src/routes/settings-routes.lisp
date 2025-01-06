@@ -8,7 +8,7 @@
   (:import-from :murja.middleware.json :@json)
   (:import-from :murja.middleware.db :@transaction)
   (:import-from :easy-routes :defroute)
-  (:export :get-settings :*log-file*))
+  (:export :update-setting :get-settings :*log-file*))
 
 (in-package :murja.routes.settings-routes)
 
@@ -27,7 +27,10 @@
   (com.inuoe.jzon:stringify
    (get-settings)))
 
-(defroute update-setting ("/api/settings/client-settings" :method :put 
+(defun update-setting (k v)
+  (postmodern:execute "INSERT INTO blog.Settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = excluded.value" k (stringify v)))
+
+(defroute update-setting-route ("/api/settings/client-settings" :method :put 
 							  :decorators (@transaction
 								       @json
 								       @authenticated
@@ -37,7 +40,7 @@
     (dolist (p req)
       (destructuring-bind (k . v) p
 	(format t "execute returned for ~a => ~a: ~a~%" k v
-		(postmodern:execute "UPDATE blog.Settings SET value = $2 WHERE key = $1" k (stringify v)))))
+		(update-setting k v))))
     (setf (hunchentoot:return-code*) 204)
     ""))
 

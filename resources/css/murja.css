@@ -418,6 +418,22 @@ input:required {
     border-radius: 10px;
 }
 
+.initial-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 2px solid #aaa;
+}
+
+.initial-form > label {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 10px;
+}
+
+.initial-form > label > input {
+}
+
 @media only screen and (max-device-width:480px)
 {
     body {

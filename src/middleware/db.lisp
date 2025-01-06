@@ -1,6 +1,7 @@
 (defpackage murja.middleware.db
   (:use :cl :postmodern)
   (:export :connect-murjadb-toplevel
+	   :@transaction 
 	   :with-db
 	   :*automatic-tests-on?*))
 

@@ -1,6 +1,7 @@
 (defpackage murja.routes.login-routes
   (:use :cl)
   (:export :get-session-key :set-session-cookies)
+  (:import-from :cl-hash-util :hash)
   (:import-from :murja.session :set-session-value)
   (:import-from :lisp-fixup :sha-512)
   (:import-from :murja.middleware.auth :@test-now :@authenticated :*user*)
@@ -8,7 +9,9 @@
    
   (:import-from :murja.middleware.json :@json)
   (:import-from :easy-routes :defroute)
-  (:import-from :com.inuoe.jzon :parse :stringify))
+  (:import-from :com.inuoe.jzon :parse :stringify)
+  (:local-nicknames (:user-db :murja.users.user-db)
+		    (:settings :murja.routes.settings-routes)))
 
 (in-package :murja.routes.login-routes)
 
@@ -89,3 +92,29 @@
       (progn
 	(setf (hunchentoot:return-code*) 401)
 	nil)))
+
+(defun save-initial-data-dump (username nickname password domain blog_title rss_title rss_link rss_description rss_lang rss_email)
+  (user-db:register-user username nickname "" password)
+  (user-db:cast-only-user-as-admin)
+
+  (settings:update-setting "domain" domain)
+  (settings:update-setting "blog-title" blog_title)
+  (settings:update-setting "rss-title" rss_title)
+  (settings:update-setting "rss-link" rss_link)
+  (settings:update-setting "rss-description" rss_description)
+  (settings:update-setting "rss-lang" rss_lang)
+  (settings:update-setting "rss-email" rss_email))
+  
+
+(defroute initial-pageview? ("/api/initial" :method :post :decorators (@transaction
+								       @json)) ()
+  (murja.json:bind-json (username nickname password domain blog_title rss_title rss_link rss_description rss_lang rss_email) () (hunchentoot:raw-post-data :force-text t)
+			(if (user-db:no-users?)
+			    (progn 
+			      (save-initial-data-dump username nickname password domain blog_title rss_title rss_link rss_description rss_lang rss_email)
+			      (setf (hunchentoot:return-code*) 204)
+			      "")
+			    (progn
+			      (log:warn "Someone called POST /api/initial while there are users")
+			      (setf (hunchentoot:return-code*) 500)
+			      ""))))

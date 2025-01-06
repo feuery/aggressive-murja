@@ -5,7 +5,8 @@
   (:import-from :murja.middleware.db :@transaction)
    
   (:import-from :murja.middleware.json :@json)
-  (:import-from :easy-routes :defroute))
+  (:import-from :easy-routes :defroute)
+  (:local-nicknames (:user-db :murja.users.user-db)))
 
 (in-package :murja.routes.root-routes)
 
@@ -65,6 +66,14 @@
 ;; (defroute resources ("/blog/resources/:file" :method :get) ()
 ;;   (get-resource file))
 
+(defun @check-if-initial (next)
+  (if (user-db:no-users?)
+      (progn
+	(setf (hunchentoot:return-code*) 302)
+	(setf (hunchentoot:header-out :location) "/blog/initial-setup")
+	"")
+      (funcall next)))
+
 (defvar *root* 
   "<!DOCTYPE html>
 <html xmlns:of=\"http://ogp.me/ns#\"
@@ -81,10 +90,17 @@
   </body>
 </html>")
 
-(defroute root ("/" :method :get) ()
+(defroute root ("/" :method :get
+		    :decorators (murja.middleware.db:@transaction
+				 @check-if-initial)) ()
   *root*)
 
-(defroute root-blg ("/blog/" :method :get) ()
+(defroute spurasdasdasd ("/blog/initial-setup" :method :get) ()
+  *root*)
+
+(defroute root-blg ("/blog/" :method :get
+			     :decorators (murja.middleware.db:@transaction
+					  @check-if-initial)) ()
   *root*)
 
 (defroute root-blg-new ("/blog/new_post" :method :get) ()
@@ -122,7 +138,7 @@
   *root*)
 
 
-(defroute ddddddd ("/blog/page/:page" :method :get) ()
+(defroute ddddddd1234 ("/blog/page/:page" :method :get) ()
   *root*)
 
 (defroute sdfdsfopsf ("/blog/feeds" :method :get) ()

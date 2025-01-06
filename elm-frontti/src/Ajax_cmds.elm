@@ -6,7 +6,8 @@ import Page
 import Feeds
 import Message exposing (..)
 import Http exposing (..)
-import Image as Image
+import Image
+import Initial
 import Settings
 import Logs
 import Json.Decode as Json
@@ -211,3 +212,9 @@ submitUser user oldpasswd newpasswd =
         { url = "/api/user/submit"
         , body = Http.jsonBody (User.encodeEditorUser user oldpasswd newpasswd)
         , expect = Http.expectWhatever UserSubmitResult}
+
+postInitialData data =
+    Http.post
+        { url = "/api/initial"
+        , body = Http.jsonBody <| Initial.initialEncoder data
+        , expect = Http.expectWhatever PostInitialSuccess}

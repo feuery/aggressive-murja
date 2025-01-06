@@ -1,7 +1,7 @@
 (defpackage :murja.users.user-db
   (:use :cl :postmodern)
   (:import-from :lisp-fixup :sha-512)
-  (:export :patch-user-img* :get-session-user-by-id :search-with-id-and-pwd* :get-user-by-id :select-user-by-login :register-user :patch-user)
+  (:export :patch-user-img* :get-session-user-by-id :search-with-id-and-pwd* :get-user-by-id :select-user-by-login :register-user :patch-user :no-users? :cast-only-user-as-admin)
   (:import-from :halisql :defqueries))
 
 (in-package :murja.users.user-db)
@@ -40,8 +40,17 @@
 			  img-location
 			  (sha-512 password))))
 
+(defun cast-only-user-as-admin ()
+  (let ((c (caar (query "SELECT count(*) FROM blog.users"))))
+    (assert (equalp c 1))
+    (execute "INSERT INTO blog.groupmapping SELECT usr.id, grp.id, true FROM blog.users usr JOIN blog.usergroup grp ON grp.name = 'Admins'")))
+
   ;;(postmodern:connect-toplevel "blogdb" "blogadmin" "blog" "localhost")
 
 (defun patch-user (usr)
   (cl-hash-util:with-keys ("nickname" "username" "password" "id") usr
     (patch-user* nickname username password id)))
+
+(defun no-users? ()
+  (caar (postmodern:query "SELECT NOT EXISTS (SELECT * FROM blog.users)")))
+

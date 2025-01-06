@@ -1,5 +1,6 @@
 (defpackage murja.middleware.json
-  (:use :cl))
+  (:use :cl)
+  (:import-from :com.inuoe.jzon :stringify))
 
 (in-package :murja.middleware.json)
 
@@ -7,6 +8,8 @@
   (setf (hunchentoot:content-type*) "application/json")
   (let ((result (funcall next)))
     (if result
-	result
+	(if (stringp result)
+	    result
+	    (stringify result))
 	(progn (setf (hunchentoot:return-code*) 404) ""))))
 	

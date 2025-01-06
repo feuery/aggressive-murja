@@ -18,6 +18,7 @@ type Route
     | Logs 
     | NotFound
     | OwnUserSettings
+    | InitialSetup 
 
 routeParser =
     oneOf
@@ -33,7 +34,8 @@ routeParser =
         , map Logs (s "blog" </> (s "logs"))
         , map PostAdmin (s "blog" </> (s "postadmin"))
         , map FeedReader (s "blog" </> (s "feeds"))
-        , map OwnUserSettings (s "blog" </> (s "usersettings"))]
+        , map OwnUserSettings (s "blog" </> (s "usersettings"))
+        , map InitialSetup (s "blog" </> (s "initial-setup"))]
         
 
 url_to_route url =

@@ -24,6 +24,7 @@ import Image
 import Logviewer
 import Logs
 import ImageSelector exposing (imageSelector)
+import InitialForm
 
 import DateTime exposing (DateTime)
 import Json.Decode as Decode
@@ -131,6 +132,17 @@ viewStatePerUrl url =
                                        , [ getSettings
                                          , getSession
                                          , getTitles])
+        RouteParser.InitialSetup -> ( InitialSetup { username = ""
+                                                   , nickname = ""
+                                                   , password = "" 
+                                                   , domain = ""
+                                                   , blog_title = ""
+                                                   , rss_title = ""
+                                                   , rss_link = ""
+                                                   , rss_description = Nothing
+                                                   , rss_lang = ""
+                                                   , rss_email = ""}
+                                    , [ getSettings ])
 
 init _ url key =
     let (viewstate, cmds) = (viewStatePerUrl url)
@@ -884,7 +896,99 @@ update msg model =
                 Err error ->
                     ( { model | view_state = ShowError (errToString error) }
                     , Cmd.none)
-                            
+        SetInitialUsername usrname ->
+            case model.view_state of
+                InitialSetup formdata ->
+                    ( { model | view_state
+                            = InitialSetup { formdata
+                                                 | username = usrname }}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetInitialNickname nckname ->
+            case model.view_state of
+                InitialSetup formdata ->
+                    ( { model | view_state
+                            = InitialSetup { formdata
+                                                 | nickname = nckname }}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetInitialPassword passwd ->
+            case model.view_state of
+                InitialSetup formdata ->
+                    ( { model | view_state
+                            = InitialSetup { formdata
+                                                 | password = passwd }}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetInitialDomain dmain ->
+            case model.view_state of
+                InitialSetup formdata ->
+                    ( { model | view_state
+                            = InitialSetup { formdata
+                                                 | domain = dmain }}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetInitialBlog_Title title ->
+            case model.view_state of
+                InitialSetup formdata ->
+                    ( { model | view_state
+                            = InitialSetup { formdata
+                                                 | blog_title = title }}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetInitialRss_Title title ->
+            case model.view_state of
+                InitialSetup formdata ->
+                    ( { model | view_state
+                            = InitialSetup { formdata
+                                                 | rss_title = title }}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetInitialRss_Link link ->
+            case model.view_state of
+                InitialSetup formdata ->
+                    ( { model | view_state
+                            = InitialSetup { formdata
+                                                 | rss_link = link }}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetInitialRss_Description descr ->
+            case model.view_state of
+                InitialSetup formdata ->
+                    ( { model | view_state
+                            = InitialSetup { formdata
+                                                 | rss_description = (if descr == "" then
+                                                                          Nothing
+                                                                      else
+                                                                          Just descr)}}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetInitialRss_Lang lang ->
+            case model.view_state of
+                InitialSetup formdata ->
+                    ( { model | view_state
+                            = InitialSetup { formdata
+                                                 | rss_lang = lang }}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SetInitialRss_Email email ->
+            case model.view_state of
+                InitialSetup formdata ->
+                    ( { model | view_state
+                            = InitialSetup { formdata
+                                                 | rss_email = email }}
+                    , Cmd.none)
+                _ -> ( model, Cmd.none)
+        SaveInitialData data ->
+            ( model
+            , postInitialData data )
+        PostInitialSuccess res ->
+            case res of
+                Ok _ ->
+                    doGoHome model
+                Err error ->
+                    ( { model | view_state = ShowError (errToString error) }
+                    , Cmd.none)                    
                     
 doGoHome_ model other_cmds =
     (model, Cmd.batch (List.append [ getSettings
@@ -970,6 +1074,7 @@ blog_tab settings model =
         UserSettings oldpasswd newpasswd usr_ -> case usr_ of
                                  Just usr -> [ UserEditor.editor model.draggingImages oldpasswd newpasswd usr]
                                  Nothing -> [ div [] [ text "Can't change user settings when there's no user"]]
+        InitialSetup data -> [ InitialForm.initialForm data]
     )
 
 rss_tab model settings =

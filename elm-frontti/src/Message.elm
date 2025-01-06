@@ -14,7 +14,8 @@ import Url
 import Title
 import Feeds
 import Image exposing (Image, ReferencingPost)
-import Logs 
+import Logs
+import Initial
 
 import File exposing (File)
 import UUID exposing (UUID)
@@ -42,6 +43,10 @@ type ViewState
       String
       -- the view's user we're editing instead of the LoginState's user who is logged in here 
       (Maybe LoginUser)
+    | InitialSetup
+      Initial.InitialFormData
+                                                                                               
+      
 
 -- a simplified version of ViewState type for the main.elm's tabcomponent 
 type TabState
@@ -66,6 +71,7 @@ viewstate_to_tabstate vs =
         Feeds _ _ -> RssFeeds
         Logs _ _ _ -> Blog
         UserSettings _ _ _ -> Blog
+        InitialSetup _ -> Blog 
 
 tabstate_to_str tb =
     case tb of
@@ -246,6 +252,19 @@ type Msg
   | SubmitChangedUser String String LoginUser
   | UserSubmitResult (Result Http.Error ())
   | UploadedOwnProfilePic (Result Http.Error Image.PostImageResponse)
+  | SetInitialUsername String
+  | SetInitialNickname String
+  | SetInitialPassword String
+  | SetInitialDomain String
+  | SetInitialBlog_Title String
+  | SetInitialRss_Title String
+  | SetInitialRss_Link String
+  | SetInitialRss_Description String
+  | SetInitialRss_Lang String
+  | SetInitialRss_Email String
+  | SaveInitialData Initial.InitialFormData
+  | PostInitialSuccess (Result Http.Error ())
+
 -- ports
 port reallySetupAce : String -> Cmd msg
 port addImgToAce : String -> Cmd msg
