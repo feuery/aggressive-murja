@@ -35,17 +35,9 @@ I'm running murja with these environment variables set up in the docker-compose 
 - MURJA_DB_PASSWD
   db password :D 
   
-The initial introduction process is _really_ bad, due to me not needing it as I've just been restoring a db dump that's been accumulating since 2016. Improving it is on the backlog.
+If murja starts up correctly and connects to the db as expected, opening http://localhost:3010 or wherever you're running murja should open up the initial setup form. 
+There you should provide your admin user's login data and rss-settings.
 
-To start using murja, you need to insert a row into blog.users (password is SHA-512). There is a convenience function murja.users.user-db:register-user, but I don't know if it's possible to get a repl inside a production murja image. 
-
-After that, you need to link your user to admin-group by running 
-```sql 
-INSERT INTO blog.groupmapping
-SELECT usr.id, grp.id, true
-FROM blog.users usr
-JOIN blog.usergroup grp ON grp.name = 'Admins'
-ON CONFLICT DO NOTHING;
-```
+Setting up the domain setting correctly is really important. Unless defaults have been altered and `lisp-fixup:*dev?*` is true, whatever domain-field contains will be sent in the session cookies' Domain field, and if this value is invalid, sessions _will_ be broken.
 
 Then the app should be usable in port http://localhost:3010 or wherever you're running the app server.
