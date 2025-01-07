@@ -21,7 +21,7 @@
 							:decorators (@json @transaction @authenticated (@can? "edit-post"))) ()
   
   (let ((titles (get-titles-by-year :allow-hidden? t)))
-    (stringify titles)))    
+    (stringify (or titles #()))))    
 
 (defroute get-page-route ("/api/posts/page/:page" :method :get
 						  :decorators (@json @transaction))

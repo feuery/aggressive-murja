@@ -45,6 +45,9 @@ titleView title =  case (int_to_month_string title.month) of
                        Nothing -> div [] [text ("Parsing month " ++ (String.fromInt title.month) ++ " failed")]
 
 view titles = (div [class "vertical-flex-container"]
-               (titles |>
-                List.map titleView))
+                   (if titles /= [] then 
+                       (titles
+                       |> List.map titleView)
+                   else [ span [] [ text "No posts in murja. Create one by "
+                                  , button [ onClick GenNewPost ] [ text "clicking here" ]]]))
                               
