@@ -68,6 +68,11 @@
 		   (:file "rss-reader-routes")
 		   (:file "user-editor")
 		   (:file "root-routes")))
+
+		 (:module "activitypub"
+		  :components
+		  ((:file "pub-routes")))
+		 
 		 (:file "main"))))
   :in-order-to ((test-op (test-op "aggressive-murja/tests"))))
 

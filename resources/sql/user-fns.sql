@@ -18,6 +18,25 @@ WHERE
 GROUP BY
   u.id;
 
+-- name: get-user-by-username*
+-- returns: :array-hash
+SELECT
+  u.id,
+  u.username,
+  u.nickname,
+  u.img_location,
+  u.password,
+  json_agg(DISTINCT perm.action) "permissions"
+FROM
+  blog.users u
+  JOIN blog.groupmapping gm ON u.id = gm.userid
+  JOIN blog.grouppermissions gp ON gp.groupid = gm.groupid
+  JOIN blog.permission perm ON gp.permissionid = perm.id
+WHERE
+  u.username = $1
+GROUP BY
+  u.id;
+  
 -- name: query-users*
 -- returns: :array-hash
 SELECT u.Username, u.Nickname, u.Img_location, ug.Name as "primary-group-name", gm.PrimaryGroup, u.ID as userid, json_agg(DISTINCT perm.action) as "permissions"
